@@ -22,7 +22,7 @@ services:
     environment:
       DATABASE_URL: postgresql://health_user:health_pass@db:5432/health_db
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       UPLOAD_DIR: /app/uploads
       CHROMA_PATH: /app/chroma_db
     volumes:
