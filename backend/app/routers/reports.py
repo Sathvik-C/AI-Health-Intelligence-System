@@ -8,7 +8,7 @@ from app.database import get_db
 from app.models.models import Report, Biomarker, User
 from app.utils.auth import get_current_user
 from app.services.pdf_service import extract_text_from_pdf
-from app.ai.openai_service import extract_biomarkers_from_text
+from app.ai.gemini_service import extract_biomarkers_from_text
 
 router = APIRouter()
 
@@ -44,7 +44,20 @@ async def upload_report(
 
     # Extract biomarkers via OpenAI
     try:
-        biomarkers_data = await extract_biomarkers_from_text(extracted_text)
+        extracted_data = await extract_biomarkers_from_text(extracted_text)
+        
+        actual_report_date = report.report_date
+        report_date_str = extracted_data.get("report_date")
+        if report_date_str:
+            try:
+                actual_report_date = datetime.strptime(report_date_str, "%Y-%m-%d")
+                report.report_date = actual_report_date
+                db.commit()
+            except ValueError:
+                pass
+
+        biomarkers_data = extracted_data.get("biomarkers", [])
+        
         for b in biomarkers_data:
             try:
                 biomarker = Biomarker(
@@ -55,7 +68,7 @@ async def upload_report(
                     unit=b.get("unit", ""),
                     ref_min=float(b["ref_min"]) if b.get("ref_min") not in [None, ""] else None,
                     ref_max=float(b["ref_max"]) if b.get("ref_max") not in [None, ""] else None,
-                    recorded_at=report.report_date,
+                    recorded_at=actual_report_date,
                 )
                 db.add(biomarker)
             except (ValueError, TypeError):
@@ -65,7 +78,7 @@ async def upload_report(
         # Don't fail if AI extraction fails
         pass
 
-    return {"report_id": report.id, "filename": file.filename, "biomarkers_extracted": len(biomarkers_data) if 'biomarkers_data' in dir() else 0}
+    return {"report_id": report.id, "filename": file.filename, "biomarkers_extracted": len(biomarkers_data) if 'biomarkers_data' in locals() else 0}
 
 
 @router.get("/")

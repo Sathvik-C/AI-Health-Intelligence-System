@@ -1,14 +1,14 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import {
-  LayoutDashboard, Upload, MessageCircle, Activity,
+  LayoutDashboard, Upload, Activity,
   Pill, FileText, LogOut, Heart
 } from 'lucide-react'
+import ChatWidget from './ChatWidget'
 
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/upload', icon: Upload, label: 'Upload Report' },
-  { to: '/chat', icon: MessageCircle, label: 'AI Chat' },
   { to: '/logs', icon: Activity, label: 'Health Logs' },
   { to: '/medicines', icon: Pill, label: 'Medicines' },
   { to: '/summary', icon: FileText, label: 'Summary' },
@@ -26,8 +26,8 @@ export default function Layout() {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-60 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0">
-        <div className="p-5 border-b border-slate-800 flex items-center gap-2">
+      <aside className="w-60 bg-stone-900 border-r border-stone-800 flex flex-col shrink-0">
+        <div className="p-5 border-b border-stone-800 flex items-center gap-2">
           <Heart className="text-brand-500" size={22} />
           <span className="font-semibold text-white tracking-tight">HealthIQ</span>
         </div>
@@ -41,7 +41,7 @@ export default function Layout() {
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
                     ? 'bg-brand-500/15 text-brand-400 font-medium'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    : 'text-stone-400 hover:text-white hover:bg-stone-800'
                 }`
               }
             >
@@ -51,9 +51,9 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-slate-800">
-          <div className="px-3 py-2 text-xs text-slate-500 truncate">{user?.email}</div>
-          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors w-full">
+        <div className="p-3 border-t border-stone-800">
+          <div className="px-3 py-2 text-xs text-stone-500 truncate">{user?.email}</div>
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-stone-400 hover:text-white hover:bg-stone-800 transition-colors w-full">
             <LogOut size={17} />
             Logout
           </button>
@@ -61,9 +61,14 @@ export default function Layout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-slate-950">
-        <Outlet />
+      <main className="flex-1 overflow-y-auto bg-stone-950">
+        <div className="max-w-5xl mx-auto w-full">
+          <Outlet />
+        </div>
       </main>
+
+      {/* Global Chat Widget */}
+      <ChatWidget />
     </div>
   )
 }

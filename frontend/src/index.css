@@ -4,25 +4,25 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans antialiased;
+    @apply bg-stone-950 text-stone-100 font-sans antialiased;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-slate-900 border border-slate-800 rounded-xl p-5;
+    @apply bg-stone-900 border border-stone-800 rounded-xl p-5;
   }
   .btn-primary {
     @apply bg-brand-500 hover:bg-brand-600 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm;
   }
   .btn-ghost {
-    @apply text-slate-400 hover:text-white hover:bg-slate-800 px-3 py-2 rounded-lg transition-colors text-sm;
+    @apply text-stone-400 hover:text-white hover:bg-stone-800 px-3 py-2 rounded-lg transition-colors text-sm;
   }
   .input {
-    @apply bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent w-full;
+    @apply bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent w-full;
   }
   .label {
-    @apply text-xs font-medium text-slate-400 uppercase tracking-wide mb-1 block;
+    @apply text-xs font-medium text-stone-400 uppercase tracking-wide mb-1 block;
   }
   .risk-green {
     @apply text-emerald-400 bg-emerald-400/10 border border-emerald-400/20;

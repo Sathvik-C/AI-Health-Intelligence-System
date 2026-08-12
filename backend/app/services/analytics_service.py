@@ -126,9 +126,111 @@ def compute_risk_scores(biomarkers: list) -> dict:
 
     cardio_score = min(cardio_score, 100)
 
+    # Kidney Risk
+    creatinine = get_val(["creatinine"])
+    egfr = get_val(["egfr", "glomerular filtration"])
+    bun = get_val(["bun", "blood urea nitrogen"])
+    uric_acid = get_val(["uric acid"])
+
+    kidney_score = 0
+    kidney_factors = []
+    if creatinine is not None:
+        pts = 40 if creatinine >= 1.5 else (20 if creatinine >= 1.2 else 0)
+        kidney_score += pts
+        kidney_factors.append({"name": "Creatinine", "value": creatinine, "points": pts})
+    if egfr is not None:
+        pts = 40 if egfr < 60 else (20 if egfr < 90 else 0)
+        kidney_score += pts
+        kidney_factors.append({"name": "eGFR", "value": egfr, "points": pts})
+    if bun is not None:
+        pts = 20 if bun > 20 else 0
+        kidney_score += pts
+        kidney_factors.append({"name": "BUN", "value": bun, "points": pts})
+    kidney_score = min(kidney_score, 100)
+
+    # Liver Risk
+    alt = get_val(["alt", "sgpt"])
+    ast = get_val(["ast", "sgot"])
+    alp = get_val(["alp", "alkaline phosphatase"])
+    bilirubin = get_val(["bilirubin"])
+    
+    liver_score = 0
+    liver_factors = []
+    if alt is not None:
+        pts = 30 if alt > 55 else (15 if alt > 40 else 0)
+        liver_score += pts
+        liver_factors.append({"name": "ALT", "value": alt, "points": pts})
+    if ast is not None:
+        pts = 30 if ast > 48 else (15 if ast > 40 else 0)
+        liver_score += pts
+        liver_factors.append({"name": "AST", "value": ast, "points": pts})
+    if alp is not None:
+        pts = 20 if alp > 147 else (10 if alp > 120 else 0)
+        liver_score += pts
+        liver_factors.append({"name": "ALP", "value": alp, "points": pts})
+    liver_score = min(liver_score, 100)
+
+    # Thyroid Risk
+    tsh = get_val(["tsh", "thyroid stimulating hormone"])
+    t4 = get_val(["free t4", "t4"])
+    
+    thyroid_score = 0
+    thyroid_factors = []
+    if tsh is not None:
+        pts = 50 if (tsh > 4.5 or tsh < 0.4) else (20 if (tsh > 4.0 or tsh < 0.5) else 0)
+        thyroid_score += pts
+        thyroid_factors.append({"name": "TSH", "value": tsh, "points": pts})
+    if t4 is not None:
+        pts = 30 if (t4 > 1.8 or t4 < 0.8) else 0
+        thyroid_score += pts
+        thyroid_factors.append({"name": "Free T4", "value": t4, "points": pts})
+    thyroid_score = min(thyroid_score, 100)
+
+    # Anemia Risk
+    hemoglobin = get_val(["hemoglobin", "hgb"])
+    ferritin = get_val(["ferritin"])
+    mcv = get_val(["mcv"])
+    
+    anemia_score = 0
+    anemia_factors = []
+    if hemoglobin is not None:
+        pts = 50 if hemoglobin < 12.0 else (20 if hemoglobin < 13.5 else 0)
+        anemia_score += pts
+        anemia_factors.append({"name": "Hemoglobin", "value": hemoglobin, "points": pts})
+    if ferritin is not None:
+        pts = 30 if ferritin < 30 else 0
+        anemia_score += pts
+        anemia_factors.append({"name": "Ferritin", "value": ferritin, "points": pts})
+    if mcv is not None:
+        pts = 20 if mcv < 80 else 0
+        anemia_score += pts
+        anemia_factors.append({"name": "MCV", "value": mcv, "points": pts})
+    anemia_score = min(anemia_score, 100)
+
+    # Inflammation Risk
+    crp = get_val(["crp", "c-reactive protein"])
+    wbc = get_val(["wbc", "white blood cell"])
+    
+    inflammation_score = 0
+    inflammation_factors = []
+    if crp is not None:
+        pts = 50 if crp > 3.0 else (20 if crp > 1.0 else 0)
+        inflammation_score += pts
+        inflammation_factors.append({"name": "CRP", "value": crp, "points": pts})
+    if wbc is not None:
+        pts = 30 if wbc > 11.0 else 0
+        inflammation_score += pts
+        inflammation_factors.append({"name": "WBC", "value": wbc, "points": pts})
+    inflammation_score = min(inflammation_score, 100)
+
     return {
-        "diabetes": {"score": diabetes_score, "factors": diabetes_factors},
-        "cardiovascular": {"score": cardio_score, "factors": cardio_factors},
+        "diabetes": {"label": "Diabetes Risk", "score": diabetes_score, "factors": diabetes_factors},
+        "cardiovascular": {"label": "Cardio Risk", "score": cardio_score, "factors": cardio_factors},
+        "kidney": {"label": "Kidney Risk", "score": kidney_score, "factors": kidney_factors},
+        "liver": {"label": "Liver Risk", "score": liver_score, "factors": liver_factors},
+        "thyroid": {"label": "Thyroid Risk", "score": thyroid_score, "factors": thyroid_factors},
+        "anemia": {"label": "Anemia Risk", "score": anemia_score, "factors": anemia_factors},
+        "inflammation": {"label": "Inflammation Risk", "score": inflammation_score, "factors": inflammation_factors},
     }
 
 

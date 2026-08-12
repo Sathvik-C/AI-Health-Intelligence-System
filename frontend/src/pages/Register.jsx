@@ -26,7 +26,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-stone-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2 justify-center mb-8">
           <Heart className="text-brand-500" size={28} />
@@ -62,7 +62,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(s => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -72,7 +72,7 @@ export default function Register() {
               {loading ? 'Creating account…' : 'Create account'}
             </button>
           </form>
-          <p className="text-sm text-slate-400 text-center mt-4">
+          <p className="text-sm text-stone-400 text-center mt-4">
             Already have an account? <Link to="/login" className="text-brand-400 hover:underline">Sign in</Link>
           </p>
         </div>

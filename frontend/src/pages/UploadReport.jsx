@@ -54,10 +54,10 @@ export default function UploadReport() {
   }
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-white">Upload Lab Report</h1>
-        <p className="text-sm text-slate-400 mt-0.5">Upload a PDF to automatically extract biomarkers with AI</p>
+        <p className="text-sm text-stone-400 mt-0.5">Upload a PDF to automatically extract biomarkers with AI</p>
       </div>
 
       {/* Drop zone */}
@@ -66,13 +66,13 @@ export default function UploadReport() {
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer ${
-          dragOver ? 'border-brand-500 bg-brand-500/10' : 'border-slate-700 hover:border-slate-600'
+          dragOver ? 'border-brand-500 bg-brand-500/10' : 'border-stone-700 hover:border-stone-600'
         }`}
         onClick={() => document.getElementById('file-input').click()}
       >
-        <Upload className="mx-auto mb-3 text-slate-500" size={36} />
-        <p className="text-slate-300 font-medium">Drag & drop a PDF here</p>
-        <p className="text-slate-500 text-sm mt-1">or click to browse</p>
+        <Upload className="mx-auto mb-3 text-stone-500" size={36} />
+        <p className="text-stone-300 font-medium">Drag & drop a PDF here</p>
+        <p className="text-stone-500 text-sm mt-1">or click to browse</p>
         <input
           id="file-input"
           type="file"
@@ -83,11 +83,11 @@ export default function UploadReport() {
       </div>
 
       {file && (
-        <div className="flex items-center justify-between bg-slate-800 rounded-lg px-4 py-3">
+        <div className="flex items-center justify-between bg-stone-800 rounded-lg px-4 py-3">
           <div className="flex items-center gap-3">
             <FileText size={18} className="text-brand-400" />
             <span className="text-sm text-white">{file.name}</span>
-            <span className="text-xs text-slate-400">({(file.size / 1024).toFixed(0)} KB)</span>
+            <span className="text-xs text-stone-400">({(file.size / 1024).toFixed(0)} KB)</span>
           </div>
           <button onClick={handleUpload} disabled={uploading} className="btn-primary flex items-center gap-2">
             {uploading ? <><Loader size={14} className="animate-spin" /> Processing…</> : 'Upload & Extract'}
@@ -108,7 +108,7 @@ export default function UploadReport() {
       <div>
         <h2 className="text-sm font-semibold text-white mb-3">Previous Reports</h2>
         {reports.length === 0 ? (
-          <p className="text-slate-500 text-sm">No reports uploaded yet.</p>
+          <p className="text-stone-500 text-sm">No reports uploaded yet.</p>
         ) : (
           <div className="space-y-2">
             {reports.map(r => (
@@ -117,10 +117,10 @@ export default function UploadReport() {
                   <FileText size={16} className="text-brand-400 shrink-0" />
                   <div>
                     <p className="text-sm text-white">{r.filename}</p>
-                    <p className="text-xs text-slate-400">{format(new Date(r.uploaded_at), 'MMM d, yyyy')} · {r.biomarker_count} biomarkers</p>
+                    <p className="text-xs text-stone-400">{format(new Date(r.uploaded_at), 'MMM d, yyyy')} · {r.biomarker_count} biomarkers</p>
                   </div>
                 </div>
-                <button onClick={() => handleDelete(r.id)} className="text-slate-500 hover:text-red-400 transition-colors p-1">
+                <button onClick={() => handleDelete(r.id)} className="text-stone-500 hover:text-red-400 transition-colors p-1">
                   <Trash2 size={15} />
                 </button>
               </div>

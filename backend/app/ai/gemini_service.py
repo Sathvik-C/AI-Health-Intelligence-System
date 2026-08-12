@@ -10,19 +10,28 @@ def get_client():
     return genai.GenerativeModel("gemini-2.5-flash")
 
 
-async def extract_biomarkers_from_text(text: str) -> list:
+async def extract_biomarkers_from_text(text: str) -> dict:
     model = get_client()
     prompt = f"""You are a medical data extraction assistant.
-Extract all biomarkers/lab values from the following medical report text.
-Return ONLY a JSON array with no markdown, no explanation.
-Each item must have: name, value, unit, ref_min, ref_max.
-Use empty string "" for missing fields. All values must be numeric strings or empty strings.
+Extract the date of the report and all biomarkers/lab values from the following medical report text.
+Return ONLY a valid JSON object with no markdown and no explanations.
+The JSON must have this exact structure:
+{{
+  "report_date": "YYYY-MM-DD", // Extract the test date or report date. Use empty string if not found.
+  "biomarkers": [
+    {{
+      "name": "Hemoglobin",
+      "value": "14.2",
+      "unit": "g/dL",
+      "ref_min": "12.0",
+      "ref_max": "16.0"
+    }}
+  ]
+}}
+Use empty string "" for missing fields in biomarkers. All values must be numeric strings or empty strings.
 
 Report text:
 {text[:4000]}
-
-Return format:
-[{{"name": "Hemoglobin", "value": "14.2", "unit": "g/dL", "ref_min": "12.0", "ref_max": "16.0"}}]
 """
     response = model.generate_content(prompt)
     raw = response.text.strip()

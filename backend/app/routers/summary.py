@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.models import User, Biomarker
 from app.utils.auth import get_current_user
-from app.ai.openai_service import generate_health_summary
+from app.ai.gemini_service import generate_health_summary
 
 router = APIRouter()
 

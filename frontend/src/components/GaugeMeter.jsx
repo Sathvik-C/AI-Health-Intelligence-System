@@ -47,7 +47,7 @@ export default function GaugeMeter({ score = 0, label = '', size = 120 }) {
       <div className={`text-xs font-medium px-2 py-0.5 rounded-full ${
         clamped < 35 ? 'risk-green' : clamped < 65 ? 'risk-yellow' : 'risk-red'
       }`}>{riskLabel} Risk</div>
-      <div className="text-xs text-slate-400 mt-1">{label}</div>
+      <div className="text-xs text-stone-400 mt-1">{label}</div>
     </div>
   )
 }
