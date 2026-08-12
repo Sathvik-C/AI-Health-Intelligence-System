@@ -1,6 +1,6 @@
 export default function GaugeMeter({ score = 0, label = '', size = 120 }) {
   const clamped = Math.max(0, Math.min(100, score))
-  const angle = (clamped / 100) * 180 - 90 // -90 to 90 degrees
+  const angle = 180 + (clamped / 100) * 180 // 180 (left) to 360 (right) degrees
 
   const color = clamped < 35 ? '#10b981' : clamped < 65 ? '#f59e0b' : '#ef4444'
   const colorClass = clamped < 35 ? 'text-emerald-400' : clamped < 65 ? 'text-amber-400' : 'text-red-400'
@@ -20,7 +20,8 @@ export default function GaugeMeter({ score = 0, label = '', size = 120 }) {
   const needleY = cy + r * 0.7 * Math.sin(((angle) * Math.PI) / 180)
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1 w-full">
+      <h3 className="text-base font-semibold text-stone-100 mb-2 tracking-wide text-center">{label}</h3>
       <svg width={size} height={size / 2 + 20} viewBox={`0 0 ${size} ${size / 2 + 20}`}>
         {/* Background arc */}
         <path
@@ -47,7 +48,7 @@ export default function GaugeMeter({ score = 0, label = '', size = 120 }) {
       <div className={`text-xs font-medium px-2 py-0.5 rounded-full ${
         clamped < 35 ? 'risk-green' : clamped < 65 ? 'risk-yellow' : 'risk-red'
       }`}>{riskLabel} Risk</div>
-      <div className="text-xs text-stone-400 mt-1">{label}</div>
+      {/* Label moved to top as heading */}
     </div>
   )
 }

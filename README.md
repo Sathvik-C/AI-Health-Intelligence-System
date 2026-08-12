@@ -1,6 +1,6 @@
 # 🏥 Health Intelligence App
 
-A full-stack AI-powered health analytics platform with biomarker tracking, forecasting, risk scoring, and a RAG-based health chatbot.
+A full-stack AI-powered health analytics platform with biomarker tracking, forecasting, risk scoring, and a context-aware AI health chatbot.
 
 ---
 
@@ -26,7 +26,7 @@ healthapp/
 │   │   │   └── analytics_service.py  # Forecasting, risk scores, anomalies
 │   │   ├── ai/
 │   │   │   ├── gemini_service.py     # Biomarker extraction + summary
-│   │   │   └── rag_service.py        # ChromaDB RAG chatbot
+│   │   │   └── rag_service.py        # Context-aware AI chatbot
 │   │   └── utils/
 │   │       └── auth.py               # JWT auth helpers
 │   ├── requirements.txt
@@ -54,7 +54,7 @@ Copy `.env.example` to `.env` and fill in:
 |---|---|
 | `GEMINI_API_KEY` | Your Gemini API key (required) |
 | `SECRET_KEY` | JWT signing secret (change in prod!) |
-| `DATABASE_URL` | PostgreSQL connection string |
+| `DATABASE_URL` | PostgreSQL connection string (defaults to local SQLite if unset) |
 | `UPLOAD_DIR` | Directory for PDF uploads |
 
 ---
@@ -64,7 +64,7 @@ Copy `.env.example` to `.env` and fill in:
 ### Prerequisites
 - Python 3.11+
 - Node.js 20+
-- PostgreSQL running locally
+- PostgreSQL running locally (Optional, defaults to SQLite)
 
 ### Backend
 
@@ -82,8 +82,11 @@ pip install -r requirements.txt
 cp ../.env.example ../.env
 # Edit .env with your GEMINI_API_KEY and database details
 
-# Create PostgreSQL database
-createdb health_db
+# (Optional) Create PostgreSQL database if not using the default SQLite
+# createdb health_db
+
+# Generate sample PDF lab reports for testing
+python generate_reports.py
 
 # Run the server
 uvicorn app.main:app --reload --port 8000
@@ -131,7 +134,7 @@ docker-compose up --build
 | 📄 PDF Report Upload | Upload lab PDFs, extract biomarkers via Gemini 2.5 Flash |
 | 📊 Biomarker Dashboard | Time-series charts with reference bands and trend arrows |
 | 🔮 Forecasting | Linear regression predicts next 3 data points |
-| ⚠️ Risk Scoring | Diabetes + Cardiovascular risk gauges (0–100) |
+| ⚠️ Risk Scoring | 7 comprehensive risk gauges: Diabetes, Cardio, Kidney, Liver, Thyroid, Anemia, Inflammation (0–100) |
 | 🚨 Anomaly Detection | Z-score based detection with alert badges |
 | 💬 AI Chatbot | AI chatbot using Google Gemini |
 | 🩺 Doctor Mode | Structured clinical data view for professionals |
