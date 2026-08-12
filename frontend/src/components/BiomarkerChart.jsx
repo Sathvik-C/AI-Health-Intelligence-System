@@ -7,11 +7,12 @@ import { format } from 'date-fns'
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 text-xs shadow-xl">
-      <p className="text-slate-400 mb-1">{label}</p>
+    <div className="bg-stone-800 border border-stone-700 rounded-xl p-4 text-xs shadow-2xl min-w-[160px]">
+      <p className="text-stone-400 mb-2 font-medium">{label}</p>
       {payload.map(p => (
-        <p key={p.dataKey} style={{ color: p.color }}>
-          {p.name}: <span className="font-mono font-bold">{p.value?.toFixed ? p.value.toFixed(2) : p.value}</span>
+        <p key={p.dataKey} className="flex items-center justify-between gap-4 py-0.5" style={{ color: p.color }}>
+          <span>{p.name}</span>
+          <span className="font-mono font-bold">{p.value?.toFixed ? p.value.toFixed(2) : p.value}</span>
         </p>
       ))}
     </div>
@@ -22,13 +23,15 @@ export default function BiomarkerChart({ historical = [], forecast = [], refMin,
   const anomalySet = new Set(anomalyIds)
 
   const histData = historical.map(d => ({
-    date: format(new Date(d.date), 'MMM d yy'),
+    date: format(new Date(d.date), 'MMM yyyy'),
+    fullDate: format(new Date(d.date), 'MMM d, yyyy'),
     actual: d.value,
     isAnomaly: anomalySet.has(d.id),
   }))
 
   const forecastData = forecast.map(d => ({
-    date: format(new Date(d.date), 'MMM d yy'),
+    date: format(new Date(d.date), 'MMM yyyy'),
+    fullDate: format(new Date(d.date), 'MMM d, yyyy'),
     forecast: d.value,
   }))
 
@@ -45,41 +48,83 @@ export default function BiomarkerChart({ historical = [], forecast = [], refMin,
   const yMax = Math.max(...allValues) * 1.15
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <ComposedChart data={combined} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-        <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-        <YAxis domain={[yMin, yMax]} tick={{ fill: '#94a3b8', fontSize: 11 }} unit={unit ? ` ${unit}` : ''} />
+    <ResponsiveContainer width="100%" height={380}>
+      <ComposedChart data={combined} margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
+        <defs>
+          <linearGradient id="refGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity={0.15} />
+            <stop offset="100%" stopColor="#10b981" stopOpacity={0.03} />
+          </linearGradient>
+          <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.2} />
+            <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+
+        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+
+        <XAxis
+          dataKey="date"
+          tick={{ fill: '#a1a1aa', fontSize: 12, fontWeight: 500 }}
+          tickLine={false}
+          axisLine={{ stroke: '#3f3f46' }}
+          dy={10}
+          padding={{ left: 30, right: 30 }}
+        />
+        <YAxis
+          domain={[yMin, yMax]}
+          tick={{ fill: '#a1a1aa', fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(val) => `${val}${unit ? ` ${unit}` : ''}`}
+          width={70}
+        />
         <Tooltip content={<CustomTooltip />} />
-        <Legend wrapperStyle={{ fontSize: 12, color: '#94a3b8' }} />
+        <Legend
+          wrapperStyle={{ fontSize: 12, color: '#a1a1aa', paddingTop: 16 }}
+          iconType="circle"
+          iconSize={8}
+        />
 
         {/* Reference band */}
         {refMin !== undefined && refMax !== undefined && (
           <Area
             data={combined}
             dataKey={() => [refMin, refMax]}
-            fill="#10b981"
-            fillOpacity={0.07}
+            fill="url(#refGradient)"
             stroke="none"
             name="Reference Range"
           />
         )}
-        {refMax && <ReferenceLine y={refMax} stroke="#f59e0b" strokeDasharray="4 4" strokeWidth={1} />}
-        {refMin && <ReferenceLine y={refMin} stroke="#f59e0b" strokeDasharray="4 4" strokeWidth={1} />}
+        {refMax && <ReferenceLine y={refMax} stroke="#f59e0b" strokeDasharray="6 3" strokeWidth={1.5} label={{ value: `Max ${refMax}`, position: 'right', fill: '#f59e0b', fontSize: 10 }} />}
+        {refMin && <ReferenceLine y={refMin} stroke="#f59e0b" strokeDasharray="6 3" strokeWidth={1.5} label={{ value: `Min ${refMin}`, position: 'right', fill: '#f59e0b', fontSize: 10 }} />}
 
-        {/* Actual line */}
+        {/* Actual line with area fill */}
+        <Area
+          dataKey="actual"
+          fill="url(#actualGradient)"
+          stroke="none"
+          connectNulls
+          legendType="none"
+        />
         <Line
           dataKey="actual"
           name="Actual"
           stroke="#0ea5e9"
-          strokeWidth={2.5}
+          strokeWidth={3}
           dot={(props) => {
             const { cx, cy, payload } = props
             if (payload.isAnomaly) {
-              return <circle key={`dot-${cx}`} cx={cx} cy={cy} r={5} fill="#ef4444" stroke="#ef4444" />
+              return (
+                <g key={`dot-${cx}`}>
+                  <circle cx={cx} cy={cy} r={8} fill="#ef4444" fillOpacity={0.2} />
+                  <circle cx={cx} cy={cy} r={5} fill="#ef4444" stroke="#fff" strokeWidth={1.5} />
+                </g>
+              )
             }
-            return <circle key={`dot-${cx}`} cx={cx} cy={cy} r={3} fill="#0ea5e9" />
+            return <circle key={`dot-${cx}`} cx={cx} cy={cy} r={4} fill="#0ea5e9" stroke="#0c4a6e" strokeWidth={2} />
           }}
+          activeDot={{ r: 6, fill: '#0ea5e9', stroke: '#fff', strokeWidth: 2 }}
           connectNulls
         />
 
@@ -88,9 +133,10 @@ export default function BiomarkerChart({ historical = [], forecast = [], refMin,
           dataKey="forecast"
           name="Forecast"
           stroke="#a78bfa"
-          strokeWidth={2}
-          strokeDasharray="6 3"
-          dot={{ r: 3, fill: '#a78bfa' }}
+          strokeWidth={2.5}
+          strokeDasharray="8 4"
+          dot={{ r: 4, fill: '#a78bfa', stroke: '#4c1d95', strokeWidth: 2 }}
+          activeDot={{ r: 6, fill: '#a78bfa', stroke: '#fff', strokeWidth: 2 }}
           connectNulls
         />
       </ComposedChart>

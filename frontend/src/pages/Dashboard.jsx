@@ -6,13 +6,13 @@ import { AlertTriangle, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucid
 import { useAuth } from '../hooks/useAuth'
 
 function TrendIndicator({ values }) {
-  if (!values || values.length < 2) return <Minus size={14} className="text-slate-500" />
+  if (!values || values.length < 2) return <Minus size={14} className="text-stone-500" />
   const last = values[values.length - 1]
   const prev = values[values.length - 2]
   const pct = ((last - prev) / prev * 100).toFixed(1)
   if (last > prev) return <span className="flex items-center gap-1 text-red-400 text-xs"><TrendingUp size={14} />+{pct}%</span>
   if (last < prev) return <span className="flex items-center gap-1 text-emerald-400 text-xs"><TrendingDown size={14} />{pct}%</span>
-  return <span className="flex items-center gap-1 text-slate-400 text-xs"><Minus size={14} />0%</span>
+  return <span className="flex items-center gap-1 text-stone-400 text-xs"><Minus size={14} />0%</span>
 }
 
 function statusColor(value, refMin, refMax) {
@@ -97,13 +97,13 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-white">Health Dashboard</h1>
-          <p className="text-sm text-slate-400 mt-0.5">Your health at a glance</p>
+          <p className="text-sm text-stone-400 mt-0.5">Your health at a glance</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setDoctorMode(d => !d)}
             className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              doctorMode ? 'bg-violet-500/20 border-violet-500/40 text-violet-300' : 'border-slate-700 text-slate-400 hover:text-white'
+              doctorMode ? 'bg-violet-500/20 border-violet-500/40 text-violet-300' : 'border-stone-700 text-stone-400 hover:text-white'
             }`}
           >
             👨‍⚕️ Doctor Mode {doctorMode ? 'ON' : 'OFF'}
@@ -115,9 +115,9 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-48 text-slate-500">Loading…</div>
+        <div className="flex items-center justify-center h-48 text-stone-500">Loading…</div>
       ) : biomarkerNames.length === 0 ? (
-        <div className="card text-center py-12 text-slate-400">
+        <div className="card text-center py-12 text-stone-400">
           <p className="text-lg mb-2">No health data yet</p>
           <p className="text-sm">Upload a lab report or add manual logs to get started.</p>
         </div>
@@ -138,33 +138,22 @@ export default function Dashboard() {
 
           {/* Risk Scores */}
           {riskScores && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="card flex flex-col items-center py-6">
-                <GaugeMeter score={riskScores.diabetes?.score || 0} label="Diabetes Risk" size={140} />
-                {!doctorMode && riskScores.diabetes?.factors?.length > 0 && (
-                  <div className="mt-4 w-full space-y-1">
-                    {riskScores.diabetes.factors.map(f => (
-                      <div key={f.name} className="flex justify-between text-xs text-slate-400">
-                        <span>{f.name}</span>
-                        <span className="font-mono">{f.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="card flex flex-col items-center py-6">
-                <GaugeMeter score={riskScores.cardiovascular?.score || 0} label="Cardio Risk" size={140} />
-                {!doctorMode && riskScores.cardiovascular?.factors?.length > 0 && (
-                  <div className="mt-4 w-full space-y-1">
-                    {riskScores.cardiovascular.factors.map(f => (
-                      <div key={f.name} className="flex justify-between text-xs text-slate-400">
-                        <span>{f.name}</span>
-                        <span className="font-mono">{f.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="flex flex-wrap justify-center gap-4">
+              {Object.entries(riskScores).map(([key, data]) => (
+                <div key={key} className="card flex flex-col items-center py-6 w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)] xl:w-[calc(25%-12px)]">
+                  <GaugeMeter score={data?.score || 0} label={data?.label || key} size={140} />
+                  {!doctorMode && data?.factors?.length > 0 && (
+                    <div className="mt-4 w-full space-y-1">
+                      {data.factors.map(f => (
+                        <div key={f.name} className="flex justify-between text-xs text-stone-400">
+                          <span>{f.name}</span>
+                          <span className="font-mono">{f.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
 
@@ -175,7 +164,7 @@ export default function Dashboard() {
               <select
                 value={selectedBiomarker}
                 onChange={e => setSelectedBiomarker(e.target.value)}
-                className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="bg-stone-800 border border-stone-700 text-sm text-white rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {biomarkerNames.map(n => <option key={n} value={n}>{n}</option>)}
               </select>
@@ -202,7 +191,7 @@ export default function Dashboard() {
             <h2 className="text-sm font-semibold text-white mb-3">All Biomarkers — Latest Values</h2>
             <table className="w-full text-xs">
               <thead>
-                <tr className="text-slate-400 border-b border-slate-800">
+                <tr className="text-stone-400 border-b border-stone-800">
                   <th className="text-left py-2 pr-4 font-medium">Biomarker</th>
                   <th className="text-right py-2 pr-4 font-medium">Value</th>
                   <th className="text-right py-2 pr-4 font-medium">Unit</th>
@@ -217,11 +206,11 @@ export default function Dashboard() {
                   if (!latest) return null
                   const sc = statusColor(latest.value, latest.ref_min, latest.ref_max)
                   return (
-                    <tr key={name} className="border-b border-slate-800/50 hover:bg-slate-800/30">
-                      <td className="py-2 pr-4 text-slate-200">{name}</td>
+                    <tr key={name} className="border-b border-stone-800/50 hover:bg-stone-800/30">
+                      <td className="py-2 pr-4 text-stone-200">{name}</td>
                       <td className="py-2 pr-4 text-right font-mono font-semibold text-white">{latest.value}</td>
-                      <td className="py-2 pr-4 text-right text-slate-400">{latest.unit}</td>
-                      <td className="py-2 pr-4 text-right text-slate-400">
+                      <td className="py-2 pr-4 text-right text-stone-400">{latest.unit}</td>
+                      <td className="py-2 pr-4 text-right text-stone-400">
                         {latest.ref_min != null && latest.ref_max != null ? `${latest.ref_min} – ${latest.ref_max}` : '–'}
                       </td>
                       <td className="py-2 text-right">

@@ -54,10 +54,10 @@ export default function LogsPage() {
   const selectedType = LOG_TYPES.find(t => t.value === form.log_type)
 
   return (
-    <div className="p-6 max-w-4xl space-y-6">
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-white">Health Logs</h1>
-        <p className="text-sm text-slate-400 mt-0.5">Manually track your vitals over time</p>
+        <p className="text-sm text-stone-400 mt-0.5">Manually track your vitals over time</p>
       </div>
 
       {/* Add log form */}
@@ -99,7 +99,7 @@ export default function LogsPage() {
             key={t.value}
             onClick={() => setActiveType(t.value)}
             className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
-              activeType === t.value ? 'bg-brand-500 text-white' : 'text-slate-400 border border-slate-700 hover:text-white'
+              activeType === t.value ? 'bg-brand-500 text-white' : 'text-stone-400 border border-stone-700 hover:text-white'
             }`}
           >
             {t.label}
@@ -128,18 +128,18 @@ export default function LogsPage() {
       <div className="card">
         <h2 className="text-sm font-semibold text-white mb-3">Recent Readings</h2>
         {typeLogs.length === 0 ? (
-          <p className="text-slate-500 text-sm">No logs yet for this type.</p>
+          <p className="text-stone-500 text-sm">No logs yet for this type.</p>
         ) : (
-          <div className="divide-y divide-slate-800">
+          <div className="divide-y divide-stone-800">
             {[...typeLogs].reverse().map(l => (
               <div key={l.id} className="flex items-center justify-between py-2.5">
                 <div>
                   <span className="font-mono font-semibold text-white">{l.value}{l.value2 ? `/${l.value2}` : ''}</span>
-                  <span className="text-xs text-slate-400 ml-2">{l.unit}</span>
+                  <span className="text-xs text-stone-400 ml-2">{l.unit}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500">{format(new Date(l.logged_at), 'MMM d, yyyy HH:mm')}</span>
-                  <button onClick={() => handleDelete(l.id)} className="text-slate-600 hover:text-red-400 transition-colors">
+                  <span className="text-xs text-stone-500">{format(new Date(l.logged_at), 'MMM d, yyyy HH:mm')}</span>
+                  <button onClick={() => handleDelete(l.id)} className="text-stone-600 hover:text-red-400 transition-colors">
                     <Trash2 size={13} />
                   </button>
                 </div>

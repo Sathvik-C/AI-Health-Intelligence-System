@@ -25,7 +25,7 @@ healthapp/
 │   │   │   ├── pdf_service.py        # PDF text extraction
 │   │   │   └── analytics_service.py  # Forecasting, risk scores, anomalies
 │   │   ├── ai/
-│   │   │   ├── openai_service.py     # Biomarker extraction + summary
+│   │   │   ├── gemini_service.py     # Biomarker extraction + summary
 │   │   │   └── rag_service.py        # ChromaDB RAG chatbot
 │   │   └── utils/
 │   │       └── auth.py               # JWT auth helpers
@@ -52,11 +52,10 @@ Copy `.env.example` to `.env` and fill in:
 
 | Variable | Description |
 |---|---|
-| `OPENAI_API_KEY` | Your OpenAI API key (required) |
+| `GEMINI_API_KEY` | Your Gemini API key (required) |
 | `SECRET_KEY` | JWT signing secret (change in prod!) |
 | `DATABASE_URL` | PostgreSQL connection string |
 | `UPLOAD_DIR` | Directory for PDF uploads |
-| `CHROMA_PATH` | Directory for ChromaDB storage |
 
 ---
 
@@ -81,7 +80,7 @@ pip install -r requirements.txt
 
 # Copy and configure env
 cp ../.env.example ../.env
-# Edit .env with your OPENAI_API_KEY and database details
+# Edit .env with your GEMINI_API_KEY and database details
 
 # Create PostgreSQL database
 createdb health_db
@@ -113,7 +112,7 @@ App available at: http://localhost:5173
 ```bash
 # Copy and configure env
 cp .env.example .env
-# Edit .env — at minimum set OPENAI_API_KEY
+# Edit .env — at minimum set GEMINI_API_KEY
 
 # Build and start all services
 docker-compose up --build
@@ -129,12 +128,12 @@ docker-compose up --build
 
 | Feature | Description |
 |---|---|
-| 📄 PDF Report Upload | Upload lab PDFs, extract biomarkers via GPT-4o-mini |
+| 📄 PDF Report Upload | Upload lab PDFs, extract biomarkers via Gemini 2.5 Flash |
 | 📊 Biomarker Dashboard | Time-series charts with reference bands and trend arrows |
 | 🔮 Forecasting | Linear regression predicts next 3 data points |
 | ⚠️ Risk Scoring | Diabetes + Cardiovascular risk gauges (0–100) |
 | 🚨 Anomaly Detection | Z-score based detection with alert badges |
-| 💬 AI Chatbot | RAG-powered chatbot using ChromaDB + OpenAI |
+| 💬 AI Chatbot | AI chatbot using Google Gemini |
 | 🩺 Doctor Mode | Structured clinical data view for professionals |
 | 💊 Medicines | Track medications with timeline overlay |
 | 📝 Health Summary | AI-generated summary of all biomarker trends |
@@ -147,7 +146,7 @@ docker-compose up --build
 - Passwords are bcrypt-hashed
 - All endpoints are JWT-protected
 - File uploads validated for PDF-only
-- OpenAI errors handled gracefully
+- Gemini errors handled gracefully
 - User data is fully isolated
 
 ---
@@ -156,6 +155,6 @@ docker-compose up --build
 
 **Frontend:** React 18, Vite, TailwindCSS, Recharts, Axios  
 **Backend:** FastAPI, SQLAlchemy, PostgreSQL, Pydantic  
-**AI:** OpenAI GPT-4o-mini, text-embedding-3-small, ChromaDB  
+**AI:** Google Gemini 2.5 Flash  
 **ML:** NumPy (linear regression), Z-score anomaly detection  
 **DevOps:** Docker, docker-compose, Nginx  

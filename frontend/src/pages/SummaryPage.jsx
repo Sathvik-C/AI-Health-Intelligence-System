@@ -21,16 +21,16 @@ export default function SummaryPage() {
   }
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-white">Health Summary</h1>
-        <p className="text-sm text-slate-400 mt-0.5">AI-generated overview of your health trends</p>
+        <p className="text-sm text-stone-400 mt-0.5">AI-generated overview of your health trends</p>
       </div>
 
       <div className="card flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-300 font-medium">Generate AI Summary</p>
-          <p className="text-xs text-slate-400 mt-0.5">Analyzes all your biomarker history and highlights key trends</p>
+          <p className="text-sm text-stone-300 font-medium">Generate AI Summary</p>
+          <p className="text-xs text-stone-400 mt-0.5">Analyzes all your biomarker history and highlights key trends</p>
         </div>
         <button onClick={generateSummary} disabled={loading} className="btn-primary flex items-center gap-2 shrink-0">
           {loading ? <><Loader size={14} className="animate-spin" /> Generating…</> : <><FileText size={14} /> Generate</>}
@@ -52,7 +52,7 @@ export default function SummaryPage() {
                 <Info size={15} className="text-brand-400" />
                 <h2 className="text-sm font-semibold text-white">Overall Assessment</h2>
               </div>
-              <p className="text-sm text-slate-300 leading-relaxed">{summary.overall_assessment}</p>
+              <p className="text-sm text-stone-300 leading-relaxed">{summary.overall_assessment}</p>
             </div>
           )}
 
@@ -66,7 +66,7 @@ export default function SummaryPage() {
                 </div>
                 <ul className="space-y-2">
                   {summary.key_improvements.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                    <li key={i} className="flex items-start gap-2 text-sm text-stone-300">
                       <TrendingUp size={12} className="text-emerald-400 mt-1 shrink-0" />
                       {item}
                     </li>
@@ -84,7 +84,7 @@ export default function SummaryPage() {
                 </div>
                 <ul className="space-y-2">
                   {summary.worsening_indicators.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                    <li key={i} className="flex items-start gap-2 text-sm text-stone-300">
                       <TrendingDown size={12} className="text-red-400 mt-1 shrink-0" />
                       {item}
                     </li>
@@ -102,7 +102,7 @@ export default function SummaryPage() {
                 </div>
                 <ul className="space-y-2">
                   {summary.risk_trends.map((item, i) => (
-                    <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                    <li key={i} className="text-sm text-stone-300 flex items-start gap-2">
                       <span className="text-amber-400 mt-1 shrink-0">⚠</span>
                       {item}
                     </li>
@@ -115,13 +115,13 @@ export default function SummaryPage() {
             {summary.important_changes?.length > 0 && (
               <div className="card">
                 <div className="flex items-center gap-2 mb-3">
-                  <Info size={15} className="text-blue-400" />
+                  <Info size={15} className="text-brand-400" />
                   <h2 className="text-sm font-semibold text-white">Important Changes</h2>
                 </div>
                 <ul className="space-y-2">
                   {summary.important_changes.map((item, i) => (
-                    <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                      <span className="text-blue-400 mt-1 shrink-0">→</span>
+                    <li key={i} className="text-sm text-stone-300 flex items-start gap-2">
+                      <span className="text-brand-400 mt-1 shrink-0">→</span>
                       {item}
                     </li>
                   ))}
@@ -130,7 +130,7 @@ export default function SummaryPage() {
             )}
           </div>
 
-          <p className="text-xs text-slate-500 text-center">
+          <p className="text-xs text-stone-500 text-center">
             ⚠️ This summary is for informational purposes only. Always consult a qualified healthcare provider for medical advice.
           </p>
         </div>

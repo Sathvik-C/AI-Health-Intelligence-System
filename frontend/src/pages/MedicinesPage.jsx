@@ -44,10 +44,10 @@ export default function MedicinesPage() {
   const isActive = (med) => !med.end_date || new Date(med.end_date) >= new Date()
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-white">Medicines</h1>
-        <p className="text-sm text-slate-400 mt-0.5">Track your medication timeline</p>
+        <p className="text-sm text-stone-400 mt-0.5">Track your medication timeline</p>
       </div>
 
       {/* Add form */}
@@ -84,38 +84,38 @@ export default function MedicinesPage() {
       <div>
         <h2 className="text-sm font-semibold text-white mb-3">Medication Timeline</h2>
         {medicines.length === 0 ? (
-          <p className="text-slate-500 text-sm">No medicines added yet.</p>
+          <p className="text-stone-500 text-sm">No medicines added yet.</p>
         ) : (
           <div className="relative pl-6 space-y-4">
-            <div className="absolute left-2 top-0 bottom-0 w-px bg-slate-800" />
+            <div className="absolute left-2 top-0 bottom-0 w-px bg-stone-800" />
             {medicines.map(m => (
               <div key={m.id} className="relative">
                 <div className={`absolute -left-4 top-3 w-2.5 h-2.5 rounded-full border-2 ${
-                  isActive(m) ? 'border-emerald-400 bg-emerald-400' : 'border-slate-600 bg-slate-800'
+                  isActive(m) ? 'border-emerald-400 bg-emerald-400' : 'border-stone-600 bg-stone-800'
                 }`} />
                 <div className="card ml-2">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <Pill size={15} className={isActive(m) ? 'text-emerald-400' : 'text-slate-500'} />
+                      <Pill size={15} className={isActive(m) ? 'text-emerald-400' : 'text-stone-500'} />
                       <div>
                         <p className="text-sm font-semibold text-white">{m.drug_name}</p>
-                        {m.dosage && <p className="text-xs text-slate-400">{m.dosage}</p>}
+                        {m.dosage && <p className="text-xs text-stone-400">{m.dosage}</p>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${isActive(m) ? 'risk-green' : 'text-slate-400 bg-slate-800'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${isActive(m) ? 'risk-green' : 'text-stone-400 bg-stone-800'}`}>
                         {isActive(m) ? 'Active' : 'Completed'}
                       </span>
-                      <button onClick={() => handleDelete(m.id)} className="text-slate-600 hover:text-red-400 transition-colors">
+                      <button onClick={() => handleDelete(m.id)} className="text-stone-600 hover:text-red-400 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
-                  <div className="flex gap-4 mt-2 text-xs text-slate-400">
+                  <div className="flex gap-4 mt-2 text-xs text-stone-400">
                     <span>Start: {format(new Date(m.start_date), 'MMM d, yyyy')}</span>
                     {m.end_date && <span>End: {format(new Date(m.end_date), 'MMM d, yyyy')}</span>}
                   </div>
-                  {m.notes && <p className="text-xs text-slate-500 mt-1">{m.notes}</p>}
+                  {m.notes && <p className="text-xs text-stone-500 mt-1">{m.notes}</p>}
                 </div>
               </div>
             ))}

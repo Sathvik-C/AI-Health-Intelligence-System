@@ -5,7 +5,6 @@ import Register from './pages/Register'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import UploadReport from './pages/UploadReport'
-import ChatPage from './pages/ChatPage'
 import LogsPage from './pages/LogsPage'
 import MedicinesPage from './pages/MedicinesPage'
 import SummaryPage from './pages/SummaryPage'
@@ -32,7 +31,6 @@ export default function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="upload" element={<UploadReport />} />
-          <Route path="chat" element={<ChatPage />} />
           <Route path="logs" element={<LogsPage />} />
           <Route path="medicines" element={<MedicinesPage />} />
           <Route path="summary" element={<SummaryPage />} />

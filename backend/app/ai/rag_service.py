@@ -17,10 +17,13 @@ IMPORTANT RULES:
 - Always recommend consulting a healthcare provider for medical decisions
 - Be clear, empathetic, and educational
 - Base your answers on the provided context
+- Keep responses SHORT and CONCISE — use brief bullet points, avoid long paragraphs
+- Maximum 3-5 bullet points per response unless the user asks for detail
 """
 
 DOCTOR_SYSTEM_PROMPT = """You are a clinical data summarization assistant for healthcare professionals.
-Present data in a structured, clinical format. Be concise and factual. No conversational language."""
+Present data in a structured, clinical format. Be concise and factual. No conversational language.
+Use short bullet points. Keep responses brief — no more than 5-6 key findings."""
 
 
 async def get_rag_answer(
