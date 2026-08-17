@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import api from '../utils/api'
-import { FileText, Loader, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Info } from 'lucide-react'
+import { FileText, Loader, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Info, Download } from 'lucide-react'
 
 export default function SummaryPage() {
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [error, setError] = useState('')
 
   const generateSummary = async () => {
@@ -20,6 +21,28 @@ export default function SummaryPage() {
     }
   }
 
+  const downloadPDF = async () => {
+    if (!summary) return
+    setDownloading(true)
+    setError('')
+    try {
+      const res = await api.post('/summary/export_pdf', summary, {
+        responseType: 'blob'
+      })
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'health_summary.pdf')
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+    } catch (e) {
+      setError('Failed to download PDF')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div>
@@ -32,9 +55,16 @@ export default function SummaryPage() {
           <p className="text-sm text-stone-300 font-medium">Generate AI Summary</p>
           <p className="text-xs text-stone-400 mt-0.5">Analyzes all your biomarker history and highlights key trends</p>
         </div>
-        <button onClick={generateSummary} disabled={loading} className="btn-primary flex items-center gap-2 shrink-0">
-          {loading ? <><Loader size={14} className="animate-spin" /> Generating…</> : <><FileText size={14} /> Generate</>}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {summary && (
+            <button onClick={downloadPDF} disabled={downloading || loading} className="flex items-center gap-2 shrink-0 bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border border-stone-700 hover:border-stone-600">
+              {downloading ? <><Loader size={14} className="animate-spin" /> PDF...</> : <><Download size={14} /> PDF</>}
+            </button>
+          )}
+          <button onClick={generateSummary} disabled={loading || downloading} className="btn-primary flex items-center gap-2 shrink-0">
+            {loading ? <><Loader size={14} className="animate-spin" /> Generating…</> : <><FileText size={14} /> Generate</>}
+          </button>
+        </div>
       </div>
 
       {error && (

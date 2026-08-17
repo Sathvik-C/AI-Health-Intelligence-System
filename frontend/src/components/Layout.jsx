@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import {
   LayoutDashboard, Upload, Activity,
-  Pill, FileText, LogOut, Heart
+  Pill, FileText, LogOut, Heart, Utensils
 } from 'lucide-react'
 import ChatWidget from './ChatWidget'
 
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/logs', icon: Activity, label: 'Health Logs' },
   { to: '/medicines', icon: Pill, label: 'Medicines' },
   { to: '/summary', icon: FileText, label: 'Summary' },
+  { to: '/nutrition', icon: Utensils, label: 'Nutrition Plan' },
 ]
 
 export default function Layout() {

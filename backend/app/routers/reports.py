@@ -22,14 +22,18 @@ async def upload_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files supported")
+    valid_exts = (".pdf", ".png", ".jpg", ".jpeg")
+    if not file.filename.lower().endswith(valid_exts):
+        raise HTTPException(status_code=400, detail="Only PDF and Image files supported")
 
     file_path = os.path.join(UPLOAD_DIR, f"{current_user.id}_{datetime.utcnow().timestamp()}_{file.filename}")
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    extracted_text = extract_text_from_pdf(file_path)
+    is_pdf = file.filename.lower().endswith(".pdf")
+    extracted_text = ""
+    if is_pdf:
+        extracted_text = extract_text_from_pdf(file_path)
 
     report = Report(
         user_id=current_user.id,
@@ -42,9 +46,13 @@ async def upload_report(
     db.commit()
     db.refresh(report)
 
-    # Extract biomarkers via OpenAI
+    # Extract biomarkers via Gemini
     try:
-        extracted_data = await extract_biomarkers_from_text(extracted_text)
+        if is_pdf:
+            extracted_data = await extract_biomarkers_from_text(extracted_text)
+        else:
+            from app.ai.gemini_service import extract_biomarkers_from_file
+            extracted_data = await extract_biomarkers_from_file(file_path)
         
         actual_report_date = report.report_date
         report_date_str = extracted_data.get("report_date")

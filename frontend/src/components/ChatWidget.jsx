@@ -47,7 +47,7 @@ export default function ChatWidget() {
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 w-14 h-14 bg-brand-500 hover:bg-brand-600 text-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 z-50"
       >
-        <MessageCircle size={24} />
+        <Bot size={24} />
       </button>
     )
   }

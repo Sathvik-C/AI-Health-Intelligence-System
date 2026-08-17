@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -8,6 +8,7 @@ import UploadReport from './pages/UploadReport'
 import LogsPage from './pages/LogsPage'
 import MedicinesPage from './pages/MedicinesPage'
 import SummaryPage from './pages/SummaryPage'
+import NutritionPage from './pages/NutritionPage'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="logs" element={<LogsPage />} />
           <Route path="medicines" element={<MedicinesPage />} />
           <Route path="summary" element={<SummaryPage />} />
+          <Route path="nutrition" element={<NutritionPage />} />
         </Route>
       </Routes>
     </AuthProvider>

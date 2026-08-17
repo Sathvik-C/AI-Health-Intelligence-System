@@ -66,3 +66,39 @@ Return this exact structure:
         if raw.startswith("json"):
             raw = raw[4:]
     return json.loads(raw)
+
+async def extract_biomarkers_from_file(file_path: str) -> dict:
+    model = get_client()
+    uploaded_file = genai.upload_file(file_path)
+    
+    prompt = """You are a medical data extraction assistant.
+Extract the date of the report and all biomarkers/lab values from the attached medical report image or document.
+Return ONLY a valid JSON object with no markdown and no explanations.
+The JSON must have this exact structure:
+{
+  "report_date": "YYYY-MM-DD",
+  "biomarkers": [
+    {
+      "name": "Hemoglobin",
+      "value": "14.2",
+      "unit": "g/dL",
+      "ref_min": "12.0",
+      "ref_max": "16.0"
+    }
+  ]
+}
+Use empty string "" for missing fields in biomarkers. All values must be numeric strings or empty strings.
+"""
+    response = model.generate_content([uploaded_file, prompt])
+    
+    try:
+        uploaded_file.delete()
+    except:
+        pass
+        
+    raw = response.text.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    return json.loads(raw)

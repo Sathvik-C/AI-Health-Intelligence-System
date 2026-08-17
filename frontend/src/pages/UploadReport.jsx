@@ -50,14 +50,14 @@ export default function UploadReport() {
     e.preventDefault()
     setDragOver(false)
     const f = e.dataTransfer.files[0]
-    if (f?.type === 'application/pdf') setFile(f)
+    if (f?.type === 'application/pdf' || f?.type === 'image/png' || f?.type === 'image/jpeg') setFile(f)
   }
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-white">Upload Lab Report</h1>
-        <p className="text-sm text-stone-400 mt-0.5">Upload a PDF to automatically extract biomarkers with AI</p>
+        <p className="text-sm text-stone-400 mt-0.5">Upload a PDF or Image to automatically extract biomarkers with AI</p>
       </div>
 
       {/* Drop zone */}
@@ -71,12 +71,12 @@ export default function UploadReport() {
         onClick={() => document.getElementById('file-input').click()}
       >
         <Upload className="mx-auto mb-3 text-stone-500" size={36} />
-        <p className="text-stone-300 font-medium">Drag & drop a PDF here</p>
+        <p className="text-stone-300 font-medium">Drag & drop a PDF or Image here</p>
         <p className="text-stone-500 text-sm mt-1">or click to browse</p>
         <input
           id="file-input"
           type="file"
-          accept=".pdf"
+          accept=".pdf,.png,.jpg,.jpeg"
           className="hidden"
           onChange={e => setFile(e.target.files[0])}
         />
