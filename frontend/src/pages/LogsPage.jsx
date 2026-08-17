@@ -9,6 +9,12 @@ const LOG_TYPES = [
   { value: 'glucose', label: 'Fasting Glucose', unit: 'mg/dL' },
   { value: 'weight', label: 'Weight', unit: 'kg' },
   { value: 'pulse', label: 'Pulse', unit: 'bpm' },
+  { value: 'spo2', label: 'Oxygen Saturation', unit: '%' },
+  { value: 'temperature', label: 'Body Temp', unit: '°F' },
+  { value: 'sleep', label: 'Sleep Duration', unit: 'hrs' },
+  { value: 'steps', label: 'Step Count', unit: 'steps' },
+  { value: 'water', label: 'Water Intake', unit: 'L' },
+  { value: 'calories', label: 'Calories', unit: 'kcal' },
 ]
 
 export default function LogsPage() {

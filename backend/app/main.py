@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import auth, reports, biomarkers, logs, medicines, chat, summary
+from app.routers import auth, reports, biomarkers, logs, medicines, chat, summary, nutrition
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,6 +22,7 @@ app.include_router(logs.router, prefix="/logs", tags=["logs"])
 app.include_router(medicines.router, prefix="/medicines", tags=["medicines"])
 app.include_router(chat.router, prefix="/chat", tags=["chat"])
 app.include_router(summary.router, prefix="/summary", tags=["summary"])
+app.include_router(nutrition.router, prefix="/nutrition", tags=["nutrition"])
 
 @app.get("/")
 def root():

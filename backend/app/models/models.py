@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Date
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Date, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -15,6 +15,7 @@ class User(Base):
     reports = relationship("Report", back_populates="user")
     manual_logs = relationship("ManualLog", back_populates="user")
     medicines = relationship("Medicine", back_populates="user")
+    diet_plans = relationship("DietPlan", back_populates="user")
 
 
 class Report(Base):
@@ -71,3 +72,12 @@ class Medicine(Base):
     notes = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="medicines")
+
+class DietPlan(Base):
+    __tablename__ = "diet_plans"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    plan_data = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="diet_plans")

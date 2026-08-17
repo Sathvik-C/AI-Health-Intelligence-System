@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.database import get_db
-from app.models.models import User, Biomarker, Report
+from app.models.models import User, Biomarker, Report, ManualLog
 from app.utils.auth import get_current_user
 from app.ai.rag_service import get_rag_answer
 
@@ -44,6 +44,23 @@ async def chat(
         }
         for b in biomarkers
     ]
+
+    manual_logs = (
+        db.query(ManualLog)
+        .filter(ManualLog.user_id == current_user.id)
+        .order_by(ManualLog.logged_at.desc())
+        .limit(50)
+        .all()
+    )
+
+    for m in manual_logs:
+        biomarker_context.append({
+            "name": m.log_type,
+            "value": f"{m.value}/{m.value2}" if m.value2 else m.value,
+            "unit": m.unit,
+            "recorded_at": m.logged_at.isoformat() if m.logged_at else None,
+            "source": "Manual Log"
+        })
 
     try:
         answer = await get_rag_answer(
