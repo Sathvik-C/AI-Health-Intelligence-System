@@ -17,6 +17,41 @@ class User(Base):
     medicines = relationship("Medicine", back_populates="user")
     diet_plans = relationship("DietPlan", back_populates="user")
 
+    wearable_data = relationship("WearableDaily",back_populates="user",cascade="all, delete-orphan")
+
+class WearableDaily(Base):
+    __tablename__ = "wearable_daily"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    user_id = Column(Integer,ForeignKey("users.id"),nullable=False,index=True)
+
+    date = Column(Date, nullable=False, index=True)
+
+    # Activity
+    steps = Column(Integer, nullable=False)
+    distance_km = Column(Float, nullable=False)
+    active_minutes = Column(Integer, nullable=False)
+    calories_burned = Column(Integer, nullable=False)
+
+    # Sleep
+    sleep_hours = Column(Float, nullable=False)
+    deep_sleep_hours = Column(Float, nullable=False)
+    light_sleep_hours = Column(Float, nullable=False)
+    rem_sleep_hours = Column(Float, nullable=False)
+
+    # Heart rate
+    resting_heart_rate = Column(Integer, nullable=False)
+    average_heart_rate = Column(Integer, nullable=False)
+    max_heart_rate = Column(Integer, nullable=False)
+
+    # Exercise
+    activity_type = Column(String(50), nullable=False)
+    exercise_minutes = Column(Integer, nullable=False)
+    exercise_calories = Column(Integer, nullable=False)
+
+    user = relationship("User",back_populates="wearable_data")
+
 
 class Report(Base):
     __tablename__ = "reports"
