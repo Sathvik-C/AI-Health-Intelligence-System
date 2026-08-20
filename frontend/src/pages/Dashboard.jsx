@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import GaugeMeter from '../components/GaugeMeter'
 import BiomarkerChart from '../components/BiomarkerChart'
+import WearableOverview from '../components/WearableOverview'
+import WearableTrendChart from '../components/WearableTrendChart'
 import { AlertTriangle, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 
@@ -32,11 +34,13 @@ export default function Dashboard() {
   const [riskScores, setRiskScores] = useState(null)
   const [anomalies, setAnomalies] = useState([])
   const [loading, setLoading] = useState(true)
+  const [wearableSummary, setWearableSummary] = useState(null)
+  const [wearableTrends, setWearableTrends] = useState([])
   const { user } = useAuth()
   const [doctorMode, setDoctorMode] = useState(false)
 
   useEffect(() => {
-    if (user)loadData()
+    if (user) loadData()
   }, [])
 
   useEffect(() => {
@@ -48,17 +52,44 @@ export default function Dashboard() {
 
   const loadData = async () => {
     setLoading(true)
+
     try {
-      const [namesRes, riskRes, anomalyRes] = await Promise.all([
+      const [
+        namesRes,
+        riskRes,
+        anomalyRes,
+        wearableSummaryRes,
+        wearableTrendsRes,
+      ] = await Promise.all([
         api.get('/biomarkers/names'),
         api.get('/biomarkers/risk-scores'),
         api.get('/biomarkers/anomalies'),
+
+        api.get('/wearable/summary'),
+
+        api.get('/wearable/trends', {
+          params: { days: 30 }
+        }),
       ])
+
       setBiomarkerNames(namesRes.data)
       setRiskScores(riskRes.data)
       setAnomalies(anomalyRes.data)
-      if (namesRes.data.length > 0) setSelectedBiomarker(namesRes.data[0])
-    } catch (e) {}
+
+      setWearableSummary(wearableSummaryRes.data)
+      setWearableTrends(wearableTrendsRes.data)
+
+      if (namesRes.data.length > 0) {
+        setSelectedBiomarker(namesRes.data[0])
+      }
+
+    } catch (e) {
+      console.error('Dashboard loading error:', e)
+
+      setWearableSummary(null)
+      setWearableTrends([])
+    }
+
     setLoading(false)
   }
 
@@ -66,7 +97,7 @@ export default function Dashboard() {
     try {
       const res = await api.get('/biomarkers', { params: { name: selectedBiomarker } })
       setBiomarkers(res.data)
-    } catch (e) {}
+    } catch (e) { }
   }
 
   const loadForecast = async () => {
@@ -102,9 +133,8 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setDoctorMode(d => !d)}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              doctorMode ? 'bg-violet-500/20 border-violet-500/40 text-violet-300' : 'border-stone-700 text-stone-400 hover:text-white'
-            }`}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${doctorMode ? 'bg-violet-500/20 border-violet-500/40 text-violet-300' : 'border-stone-700 text-stone-400 hover:text-white'
+              }`}
           >
             👨‍⚕️ Doctor Mode {doctorMode ? 'ON' : 'OFF'}
           </button>
@@ -155,6 +185,19 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
+          )}
+
+          {/* Wearable Health */}
+          {wearableSummary && (
+            <>
+              <WearableOverview
+                data={wearableSummary}
+              />
+
+              <WearableTrendChart
+                data={wearableTrends}
+              />
+            </>
           )}
 
           {/* Biomarker Chart */}
