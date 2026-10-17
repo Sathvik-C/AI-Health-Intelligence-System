@@ -30,6 +30,7 @@ const NAV_GROUPS = [
     items: [
       { to: '/add-records', icon: PlusCircle, label: 'Add Health Records' },
       { to: '/xray', icon: FileSearch, label: 'X-Ray Report' },
+      { to: '/ecg', icon: Activity, label: 'ECG Report' },
     ]
   },
   {
