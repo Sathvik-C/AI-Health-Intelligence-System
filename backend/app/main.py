@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
@@ -12,6 +14,7 @@ from app.routers import (
     nutrition,
     wearable,
     xray,
+    ecg,
 )
 Base.metadata.create_all(bind=engine)
 
@@ -35,6 +38,7 @@ app.include_router(summary.router, prefix="/summary", tags=["summary"])
 app.include_router(nutrition.router, prefix="/nutrition", tags=["nutrition"])
 app.include_router(wearable.router, prefix="/wearable", tags=["wearable"])
 app.include_router(xray.router, prefix="/xray", tags=["xray"])
+app.include_router(ecg.router, prefix="/ecg", tags=["ecg"])
 
 @app.get("/")
 def root():

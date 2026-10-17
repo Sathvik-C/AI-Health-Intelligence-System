@@ -12,6 +12,7 @@ import WearablesPage from './pages/WearablesPage'
 import NutritionPage from './pages/NutritionPage'
 import HealthInsights from './pages/HealthInsights'
 import AskHealthRecord from './pages/AskHealthRecord'
+import ECGReport from './pages/ECGReport'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="add-records" element={<AddHealthRecords />} />
           <Route path="xray" element={<XRayReport />} />
+          <Route path="ecg" element={<ECGReport />} />
           <Route path="medicines" element={<MedicinesPage />} />
           <Route path="logs" element={<LogsPage />} />
           <Route path="wearables" element={<WearablesPage />} />
