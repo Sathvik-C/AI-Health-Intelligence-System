@@ -31,7 +31,8 @@ uploads/
 chroma_db/
 backend/uploads/
 backend/chroma_db/
-dir backend\ml_weights\ecg
+backend/ml_weights/
+health_db.db
 
 # OS generated files
 .DS_Store
