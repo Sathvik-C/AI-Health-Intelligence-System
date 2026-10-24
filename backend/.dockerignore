@@ -1,0 +1,9 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+health_db.db
+uploads/
+chroma_db/
+ml_weights/

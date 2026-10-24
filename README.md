@@ -78,6 +78,9 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Download the ECG model checkpoint (about 111 MB)
+python download_ecg_model.py
+
 # Copy and configure env
 cp ../.env.example ../.env
 # Edit .env with your GEMINI_API_KEY and database details
@@ -125,6 +128,14 @@ docker-compose up --build
 - Backend API: http://localhost:8000
 - API docs: http://localhost:8000/docs
 
+The backend Docker image downloads the ECG checkpoint from Hugging Face before
+starting. For a local backend, run `python download_ecg_model.py` from `backend/`
+before starting Uvicorn. The first download requires internet access; the
+checkpoint is stored locally under `backend/ml_weights/` and is not committed to
+GitHub. The checkpoint is provided by
+[fmenegui/pretrained_image_ecg_doc](https://huggingface.co/fmenegui/pretrained_image_ecg_doc)
+under CC BY 4.0.
+
 ---
 
 ## 🌟 Features
@@ -140,6 +151,7 @@ docker-compose up --build
 | 🩺 Doctor Mode | Structured clinical data view for professionals |
 | 💊 Medicines | Track medications with timeline overlay |
 | 📝 Health Summary | AI-generated summary of all biomarker trends |
+| 🫀 ECG Analysis | Analyze ECG images with the downloadable ConvNeXt-Tiny model |
 | 🔐 Auth | JWT-based authentication with user isolation |
 
 ---
