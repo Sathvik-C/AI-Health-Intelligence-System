@@ -1,7 +1,23 @@
 import axios from 'axios'
 
+const getBaseURL = () => {
+  let url = import.meta.env.VITE_API_URL
+  if (url) {
+    url = url.trim().replace(/\/+$/, '')
+    if (!/^https?:\/\//i.test(url)) {
+      url = `https://${url}`
+    }
+    return url
+  }
+  if (typeof window !== 'undefined' && window.location) {
+    const { protocol, hostname } = window.location
+    return `${protocol}//${hostname}:8000`
+  }
+  return 'http://localhost:8000'
+}
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: getBaseURL(),
 })
 
 api.interceptors.request.use((config) => {

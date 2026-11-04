@@ -17,12 +17,16 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      const result = await login(email, password)
+      const result = await login(email.trim().toLowerCase(), password)
       if (result?.access_token) {
         window.location.href = '/dashboard'
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Invalid email or password.')
+      if (!err.response) {
+        setError('Cannot connect to backend server. Make sure the API service is reachable.')
+      } else {
+        setError(err.response?.data?.detail || 'Invalid email or password.')
+      }
     } finally {
       setLoading(false)
     }
@@ -73,6 +77,9 @@ export default function Login() {
               <input
                 required
                 type="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
                 className="input"
                 placeholder="name@domain.com"
                 value={email}

@@ -16,10 +16,14 @@ export default function Register() {
     setError('')
     setLoading(true)
     try {
-      await register(form.email, form.password, form.fullName)
+      await register(form.email.trim().toLowerCase(), form.password, form.fullName.trim())
       navigate('/login')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed')
+      if (!err.response) {
+        setError('Cannot connect to backend server. Make sure the API service is reachable.')
+      } else {
+        setError(err.response?.data?.detail || 'Registration failed')
+      }
     } finally {
       setLoading(false)
     }
@@ -81,6 +85,9 @@ export default function Register() {
               <input
                 required
                 type="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
                 className="input"
                 placeholder="you@example.com"
                 value={form.email}

@@ -125,6 +125,7 @@ export default function ECGReport() {
   ]
 
   const status = analysisData?.summary?.status
+  const isDemo = analysisData?.demo_mode === true || status === 'demo'
   const statusLabel =
     status === 'attention'
       ? 'Attention Suggested'
@@ -170,11 +171,22 @@ export default function ECGReport() {
         </div>
       </div>
 
+      {analysisData && isDemo && (
+        <div className="bg-orange-500/10 border border-orange-400/40 rounded-xl p-4 flex items-start gap-3 text-sm text-orange-200 leading-relaxed">
+          <AlertTriangle size={19} className="text-orange-300 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold text-orange-200">DEMO MODE — SIMULATED RESULTS.</span>{' '}
+            These fixed sample values were not computed from the uploaded ECG. Do not use them
+            for medical decisions.
+          </div>
+        </div>
+      )}
+
       {uploading ? (
         <div className="card p-12 flex flex-col items-center justify-center text-center space-y-4">
           <Loader size={32} className="animate-spin text-sky-400" />
-          <p className="text-sm text-stone-200 font-medium">Running ConvNeXt-Tiny ECG model...</p>
-          <p className="text-xs text-stone-400">Evaluating 6 rhythm and conduction patterns on the ECG image</p>
+          <p className="text-sm text-stone-200 font-medium">Running ECG analysis...</p>
+          <p className="text-xs text-stone-400">Checking the uploaded image and preparing the report</p>
         </div>
       ) : error ? (
         <div className="card p-6 border-rose-500/30 bg-rose-500/5 text-rose-300 text-xs flex items-center gap-3">
@@ -185,7 +197,7 @@ export default function ECGReport() {
         <EmptyState
           icon={FileSearch}
           title="No ECG records yet"
-          description="Upload a clear 12-lead ECG image to see which of the six patterns the model detects."
+          description="Upload a clear 12-lead ECG image to see the available analysis or demonstration output."
           action={() => document.querySelector('input[type="file"]')?.click()}
           actionLabel="Upload ECG Image"
         />
@@ -215,12 +227,12 @@ export default function ECGReport() {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3 text-[10px] text-stone-300 font-mono">
-                  Resized to 224x224 • ConvNeXt-Tiny Input
+                  {isDemo ? 'Demo mode • image shown for display only' : 'Resized to 224x224 • ConvNeXt-Tiny Input'}
                 </div>
               </div>
 
               <div className="text-[11px] text-stone-400 bg-white/[0.02] p-2.5 rounded-lg border border-white/[0.04]">
-                Model Architecture:{' '}
+                {isDemo ? 'Analysis mode: ' : 'Model Architecture: '}
                 <span className="font-mono text-stone-200">{analysisData.model}</span>
               </div>
             </div>
@@ -232,10 +244,10 @@ export default function ECGReport() {
             <div className="card bg-gradient-to-r from-surface-100 to-surface-200 border-white/10 p-5 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-semibold text-stone-400 uppercase tracking-wider">
-                  Overall Model Assessment
+                  {isDemo ? 'Demonstration Output' : 'Overall Model Assessment'}
                 </span>
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusClass}`}>
-                  {statusLabel}
+                  {isDemo ? 'SIMULATED' : statusLabel}
                 </span>
               </div>
               <p className="text-sm text-stone-200 leading-relaxed font-medium">
@@ -252,7 +264,7 @@ export default function ECGReport() {
             {/* Grouped observations: all six findings */}
             <div className="space-y-5">
               <h2 className="text-sm font-mono font-semibold text-stone-300 uppercase tracking-wider flex items-center gap-2">
-                <Layers size={15} className="text-sky-400" /> Model Observations
+                <Layers size={15} className="text-sky-400" /> {isDemo ? 'Illustrative Sample Findings' : 'Model Observations'}
               </h2>
 
               {categories.map((category) => (
@@ -297,7 +309,7 @@ export default function ECGReport() {
                 className="btn-secondary w-full justify-between text-xs py-2.5"
               >
                 <span className="flex items-center gap-2 font-mono">
-                  <Activity size={14} className="text-sky-400" /> View Technical Analysis (Model Scores)
+                  <Activity size={14} className="text-sky-400" /> {isDemo ? 'View Simulated Sample Values' : 'View Technical Analysis (Model Scores)'}
                 </span>
                 {showTechnical ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
@@ -305,8 +317,9 @@ export default function ECGReport() {
               {showTechnical && (
                 <div className="card mt-3 p-4 bg-[#090b10] border-white/10 space-y-3">
                   <p className="text-xs text-stone-400">
-                    Raw uncalibrated outputs from the ECG model across 6 patterns. These are not
-                    probabilities of disease:
+                    {isDemo
+                      ? 'Fixed illustrative sample values only. These were not calculated from the uploaded ECG and are not probabilities of disease.'
+                      : 'Raw uncalibrated outputs from the ECG model across 6 patterns. These are not probabilities of disease:'}
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2">
                     {analysisData.technical_scores &&

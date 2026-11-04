@@ -1,0 +1,47 @@
+services:
+  # Backend API (FastAPI + PyTorch)
+  - type: web
+    name: health-intelligence-backend
+    runtime: docker
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    plan: free
+    region: oregon
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: health-intelligence-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ECG_DEMO_MODE
+        value: "true"
+      - key: UPLOAD_DIR
+        value: /app/uploads
+
+  # Frontend Web App (React 18 + Vite)
+  - type: web
+    name: health-intelligence-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: health-intelligence-backend
+          property: host
+
+databases:
+  - name: health-intelligence-db
+    databaseName: health_db
+    user: health_user
+    plan: free
+    region: oregon
