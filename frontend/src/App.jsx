@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
+import { ThemeProvider } from './hooks/useTheme'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Layout from './components/Layout'
@@ -21,8 +22,9 @@ function PrivateRoute({ children }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Routes>
+    <ThemeProvider>
+      <AuthProvider>
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
@@ -51,5 +53,6 @@ export default function App() {
         </Route>
       </Routes>
     </AuthProvider>
-  )
+  </ThemeProvider>
+)
 }

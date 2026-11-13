@@ -4,11 +4,21 @@
 
 @layer base {
   body {
-    @apply bg-[#0b0d14] text-stone-100 font-sans antialiased tracking-tight min-h-screen;
+    @apply font-sans antialiased tracking-tight min-h-screen transition-colors duration-150;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* Custom subtle scrollbar */
+  html.dark body {
+    background-color: #0b0d14;
+    color: #f5f5f4;
+  }
+
+  html:not(.dark) body {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+
+  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -16,37 +26,64 @@
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+
+  html.dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
     border-radius: 9999px;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  html:not(.dark) ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 9999px;
+  }
+  html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.32);
   }
 }
 
 @layer components {
+  /* Cards */
   .card {
-    @apply bg-[#121520]/80 backdrop-blur-sm border border-white/[0.07] rounded-xl p-5 shadow-sm transition-all duration-200;
+    @apply rounded-xl p-5 transition-all duration-200 backdrop-blur-sm;
+    background-color: rgba(18, 21, 32, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f5f5f4;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
   }
+
   .card-hover {
-    @apply hover:border-white/[0.15] hover:bg-[#151926];
+    @apply hover:border-white/[0.16] hover:bg-[#151926];
   }
+
+  /* Primary Button */
   .btn-primary {
     @apply bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-medium px-4 py-2 rounded-lg transition-all text-sm shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed;
   }
+
+  /* Secondary Button */
   .btn-secondary {
     @apply bg-white/[0.05] hover:bg-white/[0.1] active:bg-white/[0.15] text-stone-200 font-medium px-4 py-2 rounded-lg border border-white/[0.08] transition-all text-sm flex items-center justify-center gap-2;
   }
+
+  /* Ghost Button */
   .btn-ghost {
     @apply text-stone-400 hover:text-stone-100 hover:bg-white/[0.06] px-3 py-2 rounded-lg transition-colors text-sm flex items-center justify-center gap-2;
   }
+
+  /* Inputs */
   .input {
     @apply bg-stone-900/90 border border-white/[0.1] rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-stone-500 focus:outline-none focus:ring-1 focus:ring-brand-500/80 focus:border-brand-500/80 w-full transition-all;
   }
+
+  /* Form Labels */
   .label {
     @apply text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5 block;
   }
+
+  /* Risk status badges */
   .risk-green {
     @apply text-emerald-400 bg-emerald-500/10 border border-emerald-500/20;
   }
@@ -59,4 +96,552 @@
   .risk-blue {
     @apply text-sky-400 bg-sky-500/10 border border-sky-500/20;
   }
+}
+
+/* ==========================================================================
+   LIGHT MODE: HIGH-CONTRAST ACCESSIBILITY & SHARP LEGIBILITY
+   ========================================================================== */
+
+/* Structure & Surfaces */
+html:not(.dark) .card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .card-hover:hover {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Sidebar & Layout */
+html:not(.dark) aside {
+  background-color: #ffffff !important;
+  border-right-color: #e2e8f0 !important;
+}
+
+html:not(.dark) nav a:not([class*="bg-brand"]) {
+  color: #475569 !important;
+}
+
+html:not(.dark) nav a:not([class*="bg-brand"]):hover {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) nav a[class*="bg-brand"] {
+  background-color: #fff7ed !important;
+  border-color: #fdba74 !important;
+  color: #c2410c !important;
+}
+
+html:not(.dark) nav a[class*="bg-brand"] svg {
+  color: #ea580c !important;
+}
+
+/* Inputs & Form Elements */
+html:not(.dark) .input {
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 500 !important;
+}
+
+html:not(.dark) .input::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+html:not(.dark) .input:focus {
+  border-color: #ea580c !important;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.25) !important;
+}
+
+html:not(.dark) .label {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Buttons */
+html:not(.dark) .btn-primary,
+html:not(.dark) .btn-primary *,
+html:not(.dark) button[class*="bg-brand-"],
+html:not(.dark) button[class*="bg-brand-"] * {
+  color: #ffffff !important;
+}
+
+html:not(.dark) .btn-secondary {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+html:not(.dark) .btn-secondary:hover {
+  background-color: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+  color: #000000 !important;
+}
+
+html:not(.dark) .btn-ghost {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html:not(.dark) .btn-ghost:hover {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+}
+
+/* ==========================================================================
+   LIGHT MODE TYPOGRAPHY HIERARCHY (CRISP & HIGH-CONTRAST)
+   ========================================================================== */
+
+/* Primary Headings & Bold Metric Values (Contrast > 15:1) */
+html:not(.dark) .text-white {
+  color: #090d16 !important;
+}
+
+html:not(.dark) .text-stone-100 {
+  color: #0f172a !important;
+}
+
+/* Subheadings, Card Titles, High-Priority Body */
+html:not(.dark) .text-stone-200 {
+  color: #1e293b !important;
+}
+
+/* Standard Body Copy & Item Labels */
+html:not(.dark) .text-stone-300 {
+  color: #334155 !important;
+}
+
+/* Secondary Descriptions, Captions, Subtitles (Contrast > 6.9:1) */
+html:not(.dark) .text-stone-400,
+html:not(.dark) .text-zinc-400,
+html:not(.dark) .text-gray-400,
+html:not(.dark) .text-slate-400 {
+  color: #475569 !important;
+}
+
+/* Metadata, Timestamps, Section Headers, Units (Contrast > 6.9:1) */
+html:not(.dark) .text-stone-500,
+html:not(.dark) .text-zinc-500,
+html:not(.dark) .text-gray-500,
+html:not(.dark) .text-slate-500 {
+  color: #475569 !important;
+  font-weight: 500;
+}
+
+html:not(.dark) .text-stone-600 {
+  color: #334155 !important;
+}
+
+/* Monospace & Code */
+html:not(.dark) code,
+html:not(.dark) pre {
+  color: #1e293b !important;
+  background-color: #f1f5f9 !important;
+}
+
+/* ==========================================================================
+   LIGHT MODE SEMANTIC & ACCENT COLORS (HIGH ACCESSIBILITY CONTRAST)
+   ========================================================================== */
+
+/* Sky / Blue */
+html:not(.dark) .text-sky-300,
+html:not(.dark) .text-sky-400 {
+  color: #0369a1 !important;
+}
+
+html:not(.dark) .text-blue-400 {
+  color: #1d4ed8 !important;
+}
+
+/* Emerald / Green */
+html:not(.dark) .text-emerald-300,
+html:not(.dark) .text-emerald-400 {
+  color: #047857 !important;
+}
+
+/* Amber / Warning / Gold */
+html:not(.dark) .text-amber-200,
+html:not(.dark) .text-amber-300,
+html:not(.dark) .text-amber-400 {
+  color: #b45309 !important;
+}
+
+html:not(.dark) .text-amber-500 {
+  color: #92400e !important;
+}
+
+/* Rose / Red / Attention */
+html:not(.dark) .text-rose-300,
+html:not(.dark) .text-rose-400,
+html:not(.dark) .text-red-300,
+html:not(.dark) .text-red-400 {
+  color: #be123c !important;
+}
+
+/* Indigo & Violet */
+html:not(.dark) .text-indigo-400 {
+  color: #4338ca !important;
+}
+
+html:not(.dark) .text-violet-300,
+html:not(.dark) .text-violet-400 {
+  color: #6d28d9 !important;
+}
+
+/* Brand Orange */
+html:not(.dark) .text-brand-300,
+html:not(.dark) .text-brand-400 {
+  color: #c2410c !important;
+}
+
+html:not(.dark) .text-brand-500 {
+  color: #ea580c !important;
+}
+
+/* ==========================================================================
+   LIGHT MODE CONTAINER & BACKGROUND OVERRIDES
+   ========================================================================== */
+
+html:not(.dark) .bg-\[\#0b0d14\] {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) .bg-\[\#0f111a\] {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-\[\#121520\],
+html:not(.dark) .bg-\[\#121520\]\/80,
+html:not(.dark) .bg-\[\#121520\]\/90 {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-\[\#161a29\] {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-\[\#11131f\] {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .bg-\[\#151926\] {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) .bg-\[\#090b10\],
+html:not(.dark) .bg-\[\#0d0f17\],
+html:not(.dark) .bg-\[\#0e1018\] {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) .bg-stone-900,
+html:not(.dark) .bg-stone-900\/90 {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-stone-950 {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) .bg-stone-800 {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-surface-50,
+html:not(.dark) .bg-surface-100,
+html:not(.dark) .bg-surface-200,
+html:not(.dark) .bg-surface-300,
+html:not(.dark) .bg-surface-400,
+html:not(.dark) .bg-surface-300\/40 {
+  background-color: #f8fafc !important;
+}
+
+/* Translucent Overlays & Subtle Chips */
+html:not(.dark) .bg-white\/\[0\.02\],
+html:not(.dark) .bg-white\/\[0\.03\],
+html:not(.dark) .bg-white\/\[0\.04\],
+html:not(.dark) .bg-white\/\[0\.05\],
+html:not(.dark) .bg-white\/\[0\.06\],
+html:not(.dark) .bg-white\/\[0\.07\],
+html:not(.dark) .bg-white\/\[0\.08\],
+html:not(.dark) .bg-white\/\[0\.1\],
+html:not(.dark) .bg-white\/5,
+html:not(.dark) .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Borders */
+html:not(.dark) .border-white\/\[0\.05\],
+html:not(.dark) .border-white\/\[0\.07\],
+html:not(.dark) .border-white\/\[0\.08\],
+html:not(.dark) .border-white\/\[0\.1\],
+html:not(.dark) .border-white\/10,
+html:not(.dark) .border-white\/\[0\.04\],
+html:not(.dark) .border-white\/\[0\.15\],
+html:not(.dark) .border-stone-800,
+html:not(.dark) .border-stone-700,
+html:not(.dark) .border-stone-600 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Alert Boxes & Status Banners */
+html:not(.dark) .bg-sky-500\/10 {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+}
+
+html:not(.dark) .bg-amber-500\/10 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+
+html:not(.dark) .bg-emerald-500\/10 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+html:not(.dark) .bg-rose-500\/10 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+
+/* High-Contrast Status Badges */
+html:not(.dark) .risk-green {
+  color: #047857 !important;
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  font-weight: 600 !important;
+}
+
+html:not(.dark) .risk-yellow {
+  color: #b45309 !important;
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  font-weight: 600 !important;
+}
+
+html:not(.dark) .risk-red {
+  color: #b91c1c !important;
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+  font-weight: 600 !important;
+}
+
+html:not(.dark) .risk-blue {
+  color: #0369a1 !important;
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  font-weight: 600 !important;
+}
+
+/* Gradients */
+html:not(.dark) .from-\[\#161a29\] {
+  --tw-gradient-from: #ffffff !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html:not(.dark) .to-\[\#11131f\] {
+  --tw-gradient-to: #f8fafc !important;
+}
+
+html:not(.dark) .from-surface-100 {
+  --tw-gradient-from: #ffffff !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html:not(.dark) .to-surface-200 {
+  --tw-gradient-to: #f8fafc !important;
+}
+
+/* ==========================================================================
+   CHARTS & DATA VISUALIZATIONS IN LIGHT MODE
+   ========================================================================== */
+
+html:not(.dark) .recharts-text,
+html:not(.dark) .recharts-cartesian-axis-tick-value,
+html:not(.dark) .recharts-legend-item-text {
+  fill: #334155 !important;
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html:not(.dark) .recharts-cartesian-grid line {
+  stroke: #e2e8f0 !important;
+}
+
+html:not(.dark) .recharts-default-tooltip {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Tables */
+html:not(.dark) table th {
+  color: #1e293b !important;
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  font-weight: 700 !important;
+}
+
+html:not(.dark) table td {
+  color: #334155 !important;
+  border-color: #f1f5f9 !important;
+}
+
+/* ==========================================================================
+   LIGHT MODE ADDITIONAL FIXES — MISSING COVERAGE
+   ========================================================================== */
+
+/* Login / Register page wrapper (min-h-screen) */
+html:not(.dark) .min-h-screen {
+  background-color: #f1f5f9;
+}
+
+/* Biomarker timeline node circle (bg-stone-900 border-2) */
+html:not(.dark) .bg-stone-900.border-2 {
+  background-color: #fff7ed !important;
+}
+
+/* Border overrides for white/[0.06], white/[0.07] (dividers, card sections) */
+html:not(.dark) .border-white\/\[0\.06\],
+html:not(.dark) .border-white\/\[0\.07\] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Border white/20 used on checkboxes, upload areas */
+html:not(.dark) .border-white\/20,
+html:not(.dark) .border-white\/\[0\.2\] {
+  border-color: #94a3b8 !important;
+}
+
+/* Upload/drag-drop zones (dashed borders) */
+html:not(.dark) .border-white\/10 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Tabs / section header backgrounds */
+html:not(.dark) .bg-white\/\[0\.04\] {
+  background-color: #f1f5f9 !important;
+}
+
+/* Hover states in item lists */
+html:not(.dark) .hover\:bg-white\/\[0\.02\]:hover {
+  background-color: #f1f5f9 !important;
+}
+html:not(.dark) .hover\:border-white\/10:hover,
+html:not(.dark) .hover\:border-white\/20:hover {
+  border-color: #94a3b8 !important;
+}
+
+/* stone-300 font-mono uppercase headings (used in many cards) */
+html:not(.dark) .font-mono.uppercase.text-stone-300 {
+  color: #1e293b !important;
+}
+
+/* text-xs text-stone-400 in modals / help text */
+html:not(.dark) .text-xs.text-stone-400 {
+  color: #475569 !important;
+}
+
+/* Shimmer/skeleton elements */
+html:not(.dark) .animate-pulse > div {
+  background-color: #e2e8f0 !important;
+}
+
+/* Modal / overlay backgrounds */
+html:not(.dark) .bg-black\/50,
+html:not(.dark) .bg-black\/60,
+html:not(.dark) .bg-black\/70,
+html:not(.dark) .bg-black\/80 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+/* Recharts tooltip label text */
+html:not(.dark) .recharts-tooltip-label {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+html:not(.dark) .recharts-tooltip-item {
+  color: #334155 !important;
+}
+
+/* Select / option dropdowns */
+html:not(.dark) select.input option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Divider lines */
+html:not(.dark) .border-t.border-white\/\[0\.08\],
+html:not(.dark) .border-b.border-white\/\[0\.08\] {
+  border-color: #e2e8f0 !important;
+}
+
+/* text-[11px] text-stone-400 (remember me, footnotes, tiny labels) */
+html:not(.dark) .text-\[11px\].text-stone-400 {
+  color: #475569 !important;
+}
+
+/* text-[10px] font-mono small chips */
+html:not(.dark) .text-\[10px\].font-mono {
+  color: #475569 !important;
+}
+
+/* Top-right theme toggle button on login/register */
+html:not(.dark) .bg-white\/5 {
+  background-color: #f1f5f9 !important;
+}
+
+/* text-stone-300 label text (remember me checkbox label) */
+html:not(.dark) .text-stone-300.select-none {
+  color: #334155 !important;
+}
+
+/* Focus rings */
+html:not(.dark) .focus\:ring-brand-500\/30:focus {
+  --tw-ring-color: rgba(234, 88, 12, 0.3) !important;
+}
+
+/* ChatWidget / message bubble background */
+html:not(.dark) .bg-white\/\[0\.06\] {
+  background-color: #f1f5f9 !important;
+}
+
+/* Sidebar section label text */
+html:not(.dark) .text-\[11px\].font-semibold.text-stone-400 {
+  color: #64748b !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* text-stone-300 — ensure strong contrast for all usage */
+html:not(.dark) .text-stone-300 {
+  color: #334155 !important;
+}
+
+/* text-stone-200 — subheadings and card titles */
+html:not(.dark) .text-stone-200 {
+  color: #1e293b !important;
+}
+
+/* bg-white/[0.02] body copy blocks  */
+html:not(.dark) .bg-white\/\[0\.02\] {
+  background-color: #f8fafc !important;
+}
+
+/* text-brand-400 inline links and icon colors */
+html:not(.dark) .text-brand-400 {
+  color: #c2410c !important;
+}
+html:not(.dark) .text-brand-300 {
+  color: #c2410c !important;
 }

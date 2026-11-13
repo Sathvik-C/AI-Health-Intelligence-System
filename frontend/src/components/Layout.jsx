@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../hooks/useTheme'
 import {
   LayoutDashboard,
   PlusCircle,
@@ -14,7 +15,9 @@ import {
   Shield,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -53,6 +56,7 @@ const NAV_GROUPS = [
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -130,6 +134,27 @@ export default function Layout() {
             <p className="text-[10px] text-stone-400 truncate">{user?.email}</p>
           </div>
         </div>
+
+        {/* Theme Mode Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          type="button"
+          className="flex items-center justify-between w-full px-3 py-2 mb-2 rounded-lg text-xs font-medium transition-all border border-white/[0.08] bg-white/[0.03] text-stone-300 hover:text-white hover:bg-white/[0.07]"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          <div className="flex items-center gap-2">
+            {theme === 'dark' ? (
+              <Moon size={13} className="text-brand-400" />
+            ) : (
+              <Sun size={13} className="text-amber-500" />
+            )}
+            <span>{theme === 'dark' ? 'Dark Theme' : 'Light Theme'}</span>
+          </div>
+          <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/[0.06] text-stone-400 font-semibold">
+            {theme === 'dark' ? 'DARK' : 'LIGHT'}
+          </span>
+        </button>
+
         <button
           onClick={handleLogout}
           className="flex items-center justify-center gap-2 w-full px-3 py-1.5 rounded-lg text-xs text-stone-400 hover:text-stone-200 hover:bg-white/[0.06] transition-colors border border-white/[0.05]"
@@ -173,9 +198,19 @@ export default function Layout() {
             </button>
             <span className="font-bold text-white text-sm">HealthIQ</span>
           </div>
-          <span className="text-[10px] font-mono text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20">
-            PERSONAL HEALTH INTELLIGENCE
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              type="button"
+              className="p-1.5 rounded-lg border border-white/10 text-stone-300 hover:text-white bg-white/5"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-brand-400" />}
+            </button>
+            <span className="text-[10px] font-mono text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20">
+              HEALTHIQ
+            </span>
+          </div>
         </header>
 
         {/* Scrollable Main Area */}
