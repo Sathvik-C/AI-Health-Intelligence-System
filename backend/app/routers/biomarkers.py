@@ -8,6 +8,7 @@ from app.services.analytics_service import (
     forecast_biomarker,
     compute_risk_scores,
     detect_anomalies,
+    compute_correlations,
 )
 
 router = APIRouter()
@@ -82,3 +83,15 @@ def get_anomalies(
 ):
     biomarkers = db.query(Biomarker).filter(Biomarker.user_id == current_user.id).order_by(Biomarker.recorded_at.asc()).all()
     return detect_anomalies(biomarkers)
+
+
+@router.get("/correlations")
+def get_correlations(
+    names: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Compute Pearson correlation matrix and top biomarker associations."""
+    biomarkers = db.query(Biomarker).filter(Biomarker.user_id == current_user.id).order_by(Biomarker.recorded_at.asc()).all()
+    selected = [n.strip() for n in names.split(",")] if names else None
+    return compute_correlations(biomarkers, selected)

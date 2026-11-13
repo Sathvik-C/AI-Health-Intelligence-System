@@ -27,6 +27,7 @@ import {
   TrendingDown as TrendDown,
   Info,
   X,
+  Network,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -957,14 +958,24 @@ function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
             {biomarkerNames.length} biomarkers tracked · select any to explore its journey
           </p>
         </div>
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search biomarkers…"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="input sm:w-52 text-xs"
-        />
+        {/* Controls */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Search biomarkers…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="input sm:w-48 text-xs"
+          />
+          <a
+            href="/correlations"
+            className="btn-secondary text-xs px-3 py-2 flex items-center gap-1.5 shrink-0"
+            title="Open Biomarker Correlation Heatmap"
+          >
+            <Network size={13} className="text-brand-400" />
+            <span className="hidden sm:inline">Correlation Heatmap</span>
+          </a>
+        </div>
       </div>
 
       {/* Category pills */}

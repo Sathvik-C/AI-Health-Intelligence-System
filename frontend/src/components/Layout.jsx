@@ -17,7 +17,8 @@ import {
   X,
   ChevronRight,
   Sun,
-  Moon
+  Moon,
+  Network
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -49,6 +50,7 @@ const NAV_GROUPS = [
     group: 'INTELLIGENCE',
     items: [
       { to: '/insights', icon: Sparkles, label: 'Health Insights' },
+      { to: '/correlations', icon: Network, label: 'Biomarker Heatmap' },
       { to: '/ask', icon: MessageSquareQuote, label: 'Ask Your Health Record' },
     ]
   }

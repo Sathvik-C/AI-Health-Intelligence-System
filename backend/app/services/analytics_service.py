@@ -262,3 +262,164 @@ def detect_anomalies(biomarkers: list) -> list:
                 })
 
     return anomalies
+
+
+def compute_correlations(biomarkers: list, selected_names: List[str] = None) -> dict:
+    """Compute Pearson correlation matrix and top biomarker correlations."""
+    import math
+
+    def calculate_pearson(x_vals, y_vals):
+        n = len(x_vals)
+        if n < 3:
+            return None
+        mean_x = sum(x_vals) / n
+        mean_y = sum(y_vals) / n
+        var_x = sum((x - mean_x) ** 2 for x in x_vals)
+        var_y = sum((y - mean_y) ** 2 for y in y_vals)
+        if var_x <= 1e-9 or var_y <= 1e-9:
+            return 0.0
+        cov = sum((x - mean_x) * (y - mean_y) for x, y in zip(x_vals, y_vals))
+        r = cov / math.sqrt(var_x * var_y)
+        return max(-1.0, min(1.0, r))
+
+    # Group biomarkers by name and date
+    biomarkers_by_name = defaultdict(dict)
+    units_by_name = {}
+    all_dates = set()
+
+    for b in biomarkers:
+        if not b.recorded_at or b.value is None:
+            continue
+        date_str = b.recorded_at.strftime("%Y-%m-%d")
+        all_dates.add(date_str)
+        units_by_name[b.name] = b.unit or ""
+        # If multiple on same date, average them
+        if date_str in biomarkers_by_name[b.name]:
+            existing = biomarkers_by_name[b.name][date_str]
+            biomarkers_by_name[b.name][date_str] = (existing + b.value) / 2.0
+        else:
+            biomarkers_by_name[b.name][date_str] = float(b.value)
+
+    # Candidate biomarkers with >= 3 readings
+    candidates = [
+        name for name, dates in biomarkers_by_name.items()
+        if len(dates) >= 3
+    ]
+    # Sort candidates by reading count descending
+    candidates.sort(key=lambda n: len(biomarkers_by_name[n]), reverse=True)
+
+    if not candidates:
+        return {
+            "biomarkers": [],
+            "all_available_names": [],
+            "matrix": {},
+            "top_correlations": [],
+            "total_reports_analyzed": len(all_dates),
+        }
+
+    # Decide which biomarkers form the matrix (limit to 12 for clean UI unless selected)
+    if selected_names:
+        valid_selected = [n for n in selected_names if n in biomarkers_by_name]
+        active_names = valid_selected if valid_selected else candidates[:12]
+    else:
+        active_names = candidates[:12]
+
+    # Compute correlation matrix
+    matrix = {}
+    for name_a in active_names:
+        matrix[name_a] = {}
+        for name_b in active_names:
+            if name_a == name_b:
+                matrix[name_a][name_b] = {
+                    "r": 1.0,
+                    "sample_size": len(biomarkers_by_name[name_a]),
+                    "points": [
+                        {"date": d, "x": v, "y": v}
+                        for d, v in sorted(biomarkers_by_name[name_a].items())
+                    ],
+                }
+            else:
+                shared_dates = sorted(set(biomarkers_by_name[name_a].keys()) & set(biomarkers_by_name[name_b].keys()))
+                if len(shared_dates) < 3:
+                    matrix[name_a][name_b] = {"r": None, "sample_size": len(shared_dates), "points": []}
+                else:
+                    x_vals = [biomarkers_by_name[name_a][d] for d in shared_dates]
+                    y_vals = [biomarkers_by_name[name_b][d] for d in shared_dates]
+                    r = calculate_pearson(x_vals, y_vals)
+                    points = [
+                        {"date": d, "x": round(x, 2), "y": round(y, 2)}
+                        for d, x, y in zip(shared_dates, x_vals, y_vals)
+                    ]
+                    matrix[name_a][name_b] = {
+                        "r": round(r, 2) if r is not None else None,
+                        "sample_size": len(shared_dates),
+                        "points": points,
+                    }
+
+    # Compute top correlations across all candidates (not just active matrix)
+    top_correlations = []
+    seen_pairs = set()
+    for i, name_a in enumerate(candidates):
+        for name_b in candidates[i + 1:]:
+            pair_key = tuple(sorted([name_a, name_b]))
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
+
+            shared_dates = sorted(set(biomarkers_by_name[name_a].keys()) & set(biomarkers_by_name[name_b].keys()))
+            if len(shared_dates) < 3:
+                continue
+
+            x_vals = [biomarkers_by_name[name_a][d] for d in shared_dates]
+            y_vals = [biomarkers_by_name[name_b][d] for d in shared_dates]
+            r = calculate_pearson(x_vals, y_vals)
+            if r is None or abs(r) < 0.35:
+                continue
+
+            # Classify relationship
+            if r >= 0.7:
+                rel = "Strong Positive"
+                expl = f"When {name_a} increases, {name_b} shows a strong tendency to increase as well."
+            elif r >= 0.35:
+                rel = "Moderate Positive"
+                expl = f"{name_a} and {name_b} tend to rise and fall together moderately."
+            elif r <= -0.7:
+                rel = "Strong Inverse"
+                expl = f"When {name_a} increases, {name_b} tends to decrease significantly."
+            else:
+                rel = "Moderate Inverse"
+                expl = f"{name_a} and {name_b} show a moderate inverse pattern."
+
+            points = [
+                {"date": d, "x": round(x, 2), "y": round(y, 2)}
+                for d, x, y in zip(shared_dates, x_vals, y_vals)
+            ]
+
+            top_correlations.append({
+                "biomarker_a": name_a,
+                "unit_a": units_by_name.get(name_a, ""),
+                "biomarker_b": name_b,
+                "unit_b": units_by_name.get(name_b, ""),
+                "r": round(r, 2),
+                "sample_size": len(shared_dates),
+                "relationship": rel,
+                "explanation": expl,
+                "points": points,
+            })
+
+    # Sort top correlations by absolute r descending
+    top_correlations.sort(key=lambda c: abs(c["r"]), reverse=True)
+
+    return {
+        "biomarkers": [
+            {"name": name, "unit": units_by_name.get(name, ""), "count": len(biomarkers_by_name[name])}
+            for name in active_names
+        ],
+        "all_available_names": [
+            {"name": name, "unit": units_by_name.get(name, ""), "count": len(biomarkers_by_name[name])}
+            for name in candidates
+        ],
+        "matrix": matrix,
+        "top_correlations": top_correlations[:15],
+        "total_reports_analyzed": len(all_dates),
+    }
