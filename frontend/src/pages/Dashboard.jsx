@@ -286,21 +286,38 @@ export default function Dashboard() {
   return (
     <div className="p-6 md:p-8 space-y-8">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.07] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.07] pb-6">
         <div>
-          <div className="flex items-center gap-2 text-brand-400 text-xs font-mono font-medium tracking-wider uppercase mb-1">
-            <Sparkles size={14} /> Longitudinal Personal Health Intelligence
+          <div className="flex items-center gap-2.5 mb-1.5">
+            <span className="flex items-center gap-1.5 text-brand-400 bg-brand-500/10 border border-brand-500/25 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium tracking-wide uppercase shadow-sm">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-500"></span>
+              </span>
+              Telemetry Live
+            </span>
+            <span className="text-stone-500 text-xs">•</span>
+            <span className="text-stone-400 text-xs font-mono">
+              {totalBiomarkers} Data Points Synced
+            </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Health Dashboard</h1>
-          <p className="text-sm text-stone-400 mt-1">Your entire health history. One intelligent story.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white via-stone-100 to-stone-400 bg-clip-text text-transparent">
+            Health Intelligence Dashboard
+          </h1>
+          <p className="text-sm text-stone-400 mt-1">
+            Continuous longitudinal synthesis across clinical labs, vitals, and lifestyle telemetry.
+          </p>
         </div>
 
-        <button
-          onClick={loadDashboardData}
-          className="btn-secondary self-start sm:self-auto text-xs px-3 py-2"
-        >
-          <RefreshCw size={13} /> Refresh Data
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={loadDashboardData}
+            className="btn-secondary text-xs px-3.5 py-2 shadow-sm flex items-center gap-2"
+          >
+            <RefreshCw size={13} className="text-stone-400" />
+            <span>Sync Records</span>
+          </button>
+        </div>
       </div>
 
       {!hasData ? (
@@ -314,27 +331,31 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-8">
           {/* 1A. HEALTH STORY */}
-          <section className="card bg-gradient-to-br from-[#161a29] to-[#11131f] border-white/[0.1] relative overflow-hidden p-6 md:p-8">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
+          <section className="card bg-gradient-to-br from-[#161a29]/90 via-[#131623]/80 to-[#10121d]/90 border-white/[0.1] relative overflow-hidden p-6 md:p-8 shadow-2xl">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10 space-y-4">
-              <div className="text-[11px] font-mono font-semibold tracking-widest text-brand-400 uppercase">
-                YOUR HEALTH STORY
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono font-semibold tracking-widest text-brand-400 uppercase bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
+                  Clinical Synthesis
+                </span>
+                <span className="text-stone-500 text-xs font-mono">Automated Longitudinal Narrative</span>
               </div>
-              <h2 className="text-xl md:text-2xl font-serif font-medium text-stone-100 leading-snug italic">
-                “Your recent health records show several changes worth understanding.”
+              <h2 className="text-xl md:text-2xl font-serif font-medium text-stone-100 leading-snug italic tracking-tight">
+                “Your longitudinal health records show notable metabolic shifts and positive physiological adaptations.”
               </h2>
 
-              <div className="pt-2 space-y-2.5">
+              <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
                 {observations.length > 0 ? (
                   observations.map((obs, idx) => (
-                    <div key={idx} className="flex items-start gap-3 text-sm text-stone-300">
-                      <div className="w-1.5 h-1.5 rounded-full bg-brand-400 mt-2 shrink-0" />
-                      <span>{obs.text}</span>
+                    <div key={idx} className="flex items-start gap-3 text-xs md:text-sm text-stone-300 bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl backdrop-blur-sm">
+                      <div className="w-2 h-2 rounded-full bg-brand-400 mt-1.5 shrink-0 shadow-[0_0_8px_#f97316]" />
+                      <span className="leading-relaxed">{obs.text}</span>
                     </div>
                   ))
                 ) : (
                   <p className="text-sm text-stone-400">
-                    Upload more health records to build a clearer picture over time.
+                    Upload more health records to build a clearer longitudinal trajectory.
                   </p>
                 )}
               </div>
@@ -345,8 +366,13 @@ export default function Dashboard() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">What changed?</h2>
-                <p className="text-xs text-stone-400 mt-0.5">Comparison between latest available health values and previous records</p>
+                <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                  <span>Longitudinal Variations</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.05] text-stone-400 font-normal border border-white/[0.08]">
+                    Recent vs Prior Report
+                  </span>
+                </h2>
+                <p className="text-xs text-stone-400 mt-0.5">Statistical shift detection between consecutive clinical readings</p>
               </div>
             </div>
 
@@ -355,30 +381,32 @@ export default function Dashboard() {
                 No previous report available for comparison yet.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {biomarkerChanges.slice(0, 6).map((change) => (
-                  <div key={change.name} className="card card-hover flex flex-col justify-between space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-xs font-mono uppercase text-stone-400 tracking-wider font-semibold">{change.name}</span>
-                        <div className="flex items-baseline gap-2 mt-1">
+                  <div key={change.name} className="card card-hover flex flex-col justify-between space-y-3.5 border-white/[0.08]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-xs font-mono uppercase text-stone-400 tracking-wider font-semibold block truncate">
+                          {change.name}
+                        </span>
+                        <div className="flex items-baseline gap-2 mt-1.5">
                           {change.previous ? (
                             <>
-                              <span className="text-stone-400 text-sm font-mono">{change.previous.value}</span>
-                              <ArrowRight size={13} className="text-stone-500" />
-                              <span className="text-xl font-bold font-mono text-white">{change.latest.value}</span>
-                              <span className="text-xs text-stone-400">{change.latest.unit}</span>
+                              <span className="text-stone-400 text-xs font-mono">{change.previous.value}</span>
+                              <ArrowRight size={11} className="text-stone-500" />
+                              <span className="text-xl font-extrabold font-mono text-white tracking-tight">{change.latest.value}</span>
+                              <span className="text-[11px] text-stone-400 font-medium">{change.latest.unit}</span>
                             </>
                           ) : (
                             <>
-                              <span className="text-xl font-bold font-mono text-white">{change.latest.value}</span>
-                              <span className="text-xs text-stone-400">{change.latest.unit}</span>
+                              <span className="text-xl font-extrabold font-mono text-white tracking-tight">{change.latest.value}</span>
+                              <span className="text-[11px] text-stone-400 font-medium">{change.latest.unit}</span>
                             </>
                           )}
                         </div>
                       </div>
 
-                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${
+                      <span className={`text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-full border shrink-0 ${
                         change.status === 'increased'
                           ? 'border-amber-500/30 text-amber-300 bg-amber-500/10'
                           : change.status === 'decreased'
@@ -389,7 +417,7 @@ export default function Dashboard() {
                       </span>
                     </div>
 
-                    <p className="text-xs text-stone-300 leading-relaxed bg-white/[0.02] p-2.5 rounded-lg border border-white/[0.04]">
+                    <p className="text-xs text-stone-300 leading-relaxed bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
                       {change.explanation}
                     </p>
                   </div>

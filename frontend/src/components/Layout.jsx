@@ -109,18 +109,22 @@ export default function Layout() {
                     to={to}
                     onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                      `group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 ${
                         isActive
-                          ? 'bg-brand-500/15 text-brand-300 border border-brand-500/30 shadow-sm'
+                          ? 'bg-gradient-to-r from-brand-500/20 to-brand-500/5 text-brand-300 border border-brand-500/30 shadow-sm shadow-brand-500/10'
                           : 'text-stone-400 hover:text-stone-100 hover:bg-white/[0.04]'
                       }`
                     }
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon size={16} className={isActive ? 'text-brand-400' : 'text-stone-400'} />
-                      <span>{label}</span>
+                      <Icon size={16} className={isActive ? 'text-brand-400 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]' : 'text-stone-400 group-hover:text-stone-200 transition-colors'} />
+                      <span className="tracking-wide">{label}</span>
                     </div>
-                    {isActive && <ChevronRight size={12} className="text-brand-400" />}
+                    {isActive ? (
+                      <div className="w-1.5 h-1.5 rounded-full bg-brand-400 shadow-[0_0_8px_#f97316]" />
+                    ) : (
+                      <ChevronRight size={12} className="text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    )}
                   </NavLink>
                 )
               })}
