@@ -65,20 +65,20 @@ function DualTooltip({ active, payload, label, biomarkerName, biomarkerUnit, wea
   const bEntry = payload.find(p => p.dataKey === 'biomarker')
   const wEntry = payload.find(p => p.dataKey === 'wearable')
   return (
-    <div className="bg-[#1a1d2e] border border-white/10 rounded-xl p-3 shadow-xl text-xs space-y-1 min-w-[160px]">
-      <p className="font-semibold text-stone-200 mb-2">{label}</p>
+    <div className="bg-white dark:bg-[#1a1d2e] border border-slate-200 dark:border-white/10 rounded-xl p-3 shadow-xl text-xs space-y-1 min-w-[160px]">
+      <p className="font-semibold text-stone-900 dark:text-stone-200 mb-2">{label}</p>
       {bEntry && bEntry.value != null && (
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full" style={{ background: bEntry.color }} />
-          <span className="text-stone-400">{biomarkerName}:</span>
-          <span className="text-white font-medium ml-auto">{Number(bEntry.value).toFixed(2)} {biomarkerUnit}</span>
+          <span className="text-stone-500 dark:text-stone-400">{biomarkerName}:</span>
+          <span className="text-stone-900 dark:text-white font-medium ml-auto">{Number(bEntry.value).toFixed(2)} {biomarkerUnit}</span>
         </div>
       )}
       {wEntry && wEntry.value != null && (
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full" style={{ background: wEntry.color }} />
-          <span className="text-stone-400">{wearableMetric?.label}:</span>
-          <span className="text-white font-medium ml-auto">{Number(wEntry.value).toFixed(1)} {wearableMetric?.unit}</span>
+          <span className="text-stone-500 dark:text-stone-400">{wearableMetric?.label}:</span>
+          <span className="text-stone-900 dark:text-white font-medium ml-auto">{Number(wEntry.value).toFixed(1)} {wearableMetric?.unit}</span>
         </div>
       )}
     </div>
@@ -255,10 +255,10 @@ export default function WearableOverlay() {
           <select
             value={selectedBiomarker}
             onChange={e => setSelectedBiomarker(e.target.value)}
-            className="bg-white/[0.05] border border-white/[0.1] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30"
+            className="input bg-white/[0.05] border border-white/[0.1] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30"
           >
             {biomarkerNames.map(name => (
-              <option key={name} value={name} className="bg-[#1a1d2e]">{name}</option>
+              <option key={name} value={name} className="bg-white dark:bg-[#1a1d2e] text-stone-900 dark:text-white">{name}</option>
             ))}
           </select>
         </div>
@@ -268,10 +268,10 @@ export default function WearableOverlay() {
           <select
             value={selectedWearable}
             onChange={e => setSelectedWearable(e.target.value)}
-            className="bg-white/[0.05] border border-white/[0.1] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30"
+            className="input bg-white/[0.05] border border-white/[0.1] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30"
           >
             {WEARABLE_METRICS.map(m => (
-              <option key={m.key} value={m.key} className="bg-[#1a1d2e]">{m.label} ({m.unit})</option>
+              <option key={m.key} value={m.key} className="bg-white dark:bg-[#1a1d2e] text-stone-900 dark:text-white">{m.label} ({m.unit})</option>
             ))}
           </select>
         </div>
@@ -439,9 +439,9 @@ export default function WearableOverlay() {
 
       {/* Insight card */}
       {!loading && pearsonR !== null && sharedCount >= 3 && (
-        <div className="card p-4 border-l-4 border-indigo-500/50">
+        <div className="card p-4 border-l-4 border-indigo-500 bg-indigo-500/[0.04] dark:bg-indigo-500/[0.05]">
           <div className="flex items-start gap-3">
-            <TrendingUp size={18} className="text-indigo-400 mt-0.5 shrink-0" />
+            <TrendingUp size={18} className="text-indigo-500 dark:text-indigo-400 mt-0.5 shrink-0" />
             <div className="space-y-1">
               <p className="text-sm font-semibold text-white">Correlation Insight</p>
               <p className="text-xs text-stone-300 leading-relaxed">
@@ -463,11 +463,11 @@ export default function WearableOverlay() {
 
       {/* No shared dates note */}
       {!loading && !error && chartData.length > 0 && sharedCount === 0 && (
-        <div className="card p-4 border-l-4 border-amber-500/40">
+        <div className="card p-4 border-l-4 border-amber-500 bg-amber-500/[0.04] dark:bg-amber-500/[0.05]">
           <div className="flex items-start gap-3">
-            <AlertCircle size={18} className="text-amber-400 mt-0.5 shrink-0" />
+            <AlertCircle size={18} className="text-amber-500 dark:text-amber-400 mt-0.5 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-amber-200">No Overlapping Dates</p>
+              <p className="text-sm font-semibold text-amber-700 dark:text-amber-200">No Overlapping Dates</p>
               <p className="text-xs text-stone-400 mt-1 leading-relaxed">
                 Your biomarker records and wearable data cover different time ranges. Both trends are shown
                 independently on the same chart. Correlation analysis requires at least 3 dates in common.

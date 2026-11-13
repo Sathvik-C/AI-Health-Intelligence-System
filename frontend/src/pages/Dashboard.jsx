@@ -505,11 +505,11 @@ function AnomalyAlertBanner({ anomalies, onDismiss }) {
 
   return (
     <div
-      className="relative rounded-2xl border p-5 overflow-hidden"
-      style={{
-        background: hasHigh ? 'rgba(244,63,94,0.06)' : 'rgba(245,158,11,0.06)',
-        borderColor: hasHigh ? 'rgba(244,63,94,0.3)' : 'rgba(245,158,11,0.3)',
-      }}
+      className={`relative rounded-2xl border p-5 overflow-hidden ${
+        hasHigh 
+          ? 'bg-rose-500/[0.06] border-rose-500/30' 
+          : 'bg-amber-500/[0.06] border-amber-500/30'
+      }`}
     >
       {/* dismiss */}
       <button
@@ -521,11 +521,11 @@ function AnomalyAlertBanner({ anomalies, onDismiss }) {
 
       <div className="flex items-start gap-3 mb-4">
         <div
-          className="p-2.5 rounded-xl shrink-0"
-          style={{
-            background: hasHigh ? 'rgba(244,63,94,0.12)' : 'rgba(245,158,11,0.12)',
-            color: hasHigh ? '#f43f5e' : '#f59e0b',
-          }}
+          className={`p-2.5 rounded-xl shrink-0 ${
+            hasHigh
+              ? 'bg-rose-500/15 text-rose-500 dark:text-rose-400'
+              : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+          }`}
         >
           <ShieldAlert size={20} />
         </div>
@@ -542,17 +542,22 @@ function AnomalyAlertBanner({ anomalies, onDismiss }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {top.map((a, i) => {
           const isHigh = a.severity === 'high'
-          const color  = isHigh ? '#f43f5e' : '#f59e0b'
-          const bg     = isHigh ? 'rgba(244,63,94,0.08)' : 'rgba(245,158,11,0.08)'
-          const border = isHigh ? 'rgba(244,63,94,0.2)' : 'rgba(245,158,11,0.2)'
+          const badgeClass = isHigh
+            ? 'text-rose-600 dark:text-rose-400 border-rose-500/30 bg-rose-500/10'
+            : 'text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10'
+          const itemBgClass = isHigh
+            ? 'bg-rose-500/[0.08] border-rose-500/25'
+            : 'bg-amber-500/[0.08] border-amber-500/25'
+
           return (
             <div
               key={i}
-              className="flex items-center gap-3 rounded-xl p-3"
-              style={{ background: bg, border: `1px solid ${border}` }}
+              className={`flex items-center gap-3 rounded-xl p-3 border ${itemBgClass}`}
             >
               <div className="text-center min-w-[52px]">
-                <div className="text-xl font-bold font-mono" style={{ color }}>{a.value}</div>
+                <div className={`text-xl font-bold font-mono ${isHigh ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                  {a.value}
+                </div>
                 <div className="text-[9px] text-stone-500 mt-0.5">z={a.z_score?.toFixed(1)}</div>
               </div>
               <div className="flex-1 min-w-0">
@@ -562,8 +567,7 @@ function AnomalyAlertBanner({ anomalies, onDismiss }) {
                 </div>
               </div>
               <span
-                className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0"
-                style={{ color, borderColor: border, background: bg }}
+                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 ${badgeClass}`}
               >
                 {isHigh ? 'High' : 'Medium'}
               </span>
@@ -623,7 +627,8 @@ function RiskGauge({ domain, label, score, factors }) {
           <path
             d="M 12 50 A 38 38 0 0 1 88 50"
             fill="none"
-            stroke="rgba(255, 255, 255, 0.07)"
+            stroke="currentColor"
+            className="text-white/[0.08] dark:text-white/[0.07] stroke-stone-200 dark:stroke-white/[0.07]"
             strokeWidth="8"
             strokeLinecap="round"
           />
@@ -676,10 +681,9 @@ function RiskGauge({ domain, label, score, factors }) {
       {/* Expanded factors */}
       {expanded && factors && factors.length > 0 && (
         <div
-          className="absolute top-full left-0 right-0 z-30 mt-2 rounded-xl border p-3 space-y-1.5 shadow-2xl"
+          className="absolute top-full left-0 right-0 z-30 mt-2 rounded-xl border p-3 space-y-1.5 shadow-2xl bg-white dark:bg-[#161a29]"
           style={{
-            background: '#161a29',
-            borderColor: `${color}30`,
+            borderColor: `${color}40`,
             minWidth: 180,
           }}
           onClick={e => e.stopPropagation()}

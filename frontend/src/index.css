@@ -645,3 +645,127 @@ html:not(.dark) .text-brand-400 {
 html:not(.dark) .text-brand-300 {
   color: #c2410c !important;
 }
+
+/* ==========================================================================
+   LIGHT MODE: WARNINGS, ALERTS, CALLOUTS & GRADIENTS
+   ========================================================================== */
+
+/* Left-border colored callout cards */
+html:not(.dark) .border-l-4.border-amber-500,
+html:not(.dark) .border-l-4.border-amber-500\/40,
+html:not(.dark) .border-l-4.border-amber-500\/50 {
+  border-left-color: #d97706 !important;
+  background-color: #fffbeb !important;
+}
+
+html:not(.dark) .border-l-4.border-indigo-500,
+html:not(.dark) .border-l-4.border-indigo-500\/40,
+html:not(.dark) .border-l-4.border-indigo-500\/50 {
+  border-left-color: #6366f1 !important;
+  background-color: #eef2ff !important;
+}
+
+html:not(.dark) .border-l-4.border-rose-500,
+html:not(.dark) .border-l-4.border-rose-500\/40,
+html:not(.dark) .border-l-4.border-rose-500\/50 {
+  border-left-color: #e11d48 !important;
+  background-color: #fff1f2 !important;
+}
+
+html:not(.dark) .border-l-4.border-emerald-500,
+html:not(.dark) .border-l-4.border-emerald-500\/40,
+html:not(.dark) .border-l-4.border-emerald-500\/50 {
+  border-left-color: #059669 !important;
+  background-color: #ecfdf5 !important;
+}
+
+/* Soft Alert & Callout backgrounds (bg-xxx-500/10, /15, /20) */
+html:not(.dark) .bg-amber-500\/\[0\.06\],
+html:not(.dark) .bg-amber-500\/\[0\.08\],
+html:not(.dark) .bg-amber-500\/10,
+html:not(.dark) .bg-amber-500\/15 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+
+html:not(.dark) .bg-rose-500\/\[0\.06\],
+html:not(.dark) .bg-rose-500\/\[0\.08\],
+html:not(.dark) .bg-rose-500\/10,
+html:not(.dark) .bg-rose-500\/15 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+
+html:not(.dark) .bg-emerald-500\/\[0\.06\],
+html:not(.dark) .bg-emerald-500\/\[0\.08\],
+html:not(.dark) .bg-emerald-500\/10,
+html:not(.dark) .bg-emerald-500\/15 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+html:not(.dark) .bg-sky-500\/\[0\.06\],
+html:not(.dark) .bg-sky-500\/\[0\.08\],
+html:not(.dark) .bg-sky-500\/10,
+html:not(.dark) .bg-sky-500\/15 {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+}
+
+html:not(.dark) .bg-indigo-500\/\[0\.06\],
+html:not(.dark) .bg-indigo-500\/\[0\.08\],
+html:not(.dark) .bg-indigo-500\/10,
+html:not(.dark) .bg-indigo-500\/15 {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+}
+
+/* Text inside alerts & warning callouts */
+html:not(.dark) .text-amber-200,
+html:not(.dark) .text-amber-300 {
+  color: #b45309 !important;
+}
+
+html:not(.dark) .text-rose-200,
+html:not(.dark) .text-rose-300 {
+  color: #be123c !important;
+}
+
+html:not(.dark) .text-emerald-200,
+html:not(.dark) .text-emerald-300 {
+  color: #047857 !important;
+}
+
+html:not(.dark) .text-sky-200,
+html:not(.dark) .text-sky-300 {
+  color: #0369a1 !important;
+}
+
+/* Light mode overrides for hero gradients */
+html:not(.dark) .bg-gradient-to-br.from-\[\#161a29\].to-\[\#11131f\] {
+  background: linear-gradient(to bottom right, #ffffff, #f8fafc) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .bg-gradient-to-r.from-surface-100.to-surface-200 {
+  background: linear-gradient(to right, #ffffff, #f8fafc) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .bg-gradient-to-br.from-brand-500\/10 {
+  background: linear-gradient(to bottom right, #fff7ed, #ffffff) !important;
+  border-color: #fdba74 !important;
+}
+
+/* High contrast for dark floating cards and tooltips */
+html:not(.dark) .bg-\[\#121520\],
+html:not(.dark) .bg-\[\#121520\]\/90,
+html:not(.dark) .bg-\[\#0e1018\],
+html:not(.dark) .bg-\[\#0d0f17\],
+html:not(.dark) .bg-\[\#090b10\],
+html:not(.dark) .bg-\[\#1a1d2e\] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
