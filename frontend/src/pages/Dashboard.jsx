@@ -658,12 +658,12 @@ function RiskGauge({ domain, label, score, factors }) {
       <span
         className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border mt-2"
         style={{
-          color: gaugeColor,
-          borderColor: `${gaugeColor}40`,
-          background: `${gaugeColor}12`,
+          color,
+          borderColor: `${color}40`,
+          background: `${color}12`,
         }}
       >
-        {score >= 67 ? 'High' : score >= 34 ? 'Moderate' : 'Low'}
+        {safeScore >= 67 ? 'High' : safeScore >= 34 ? 'Moderate' : 'Low'}
       </span>
 
       {/* Expand arrow */}
@@ -679,7 +679,7 @@ function RiskGauge({ domain, label, score, factors }) {
           className="absolute top-full left-0 right-0 z-30 mt-2 rounded-xl border p-3 space-y-1.5 shadow-2xl"
           style={{
             background: '#161a29',
-            borderColor: `${gaugeColor}30`,
+            borderColor: `${color}30`,
             minWidth: 180,
           }}
           onClick={e => e.stopPropagation()}
@@ -691,7 +691,7 @@ function RiskGauge({ domain, label, score, factors }) {
             <div key={i} className="flex items-center justify-between gap-2">
               <span className="text-[10px] text-stone-300 truncate">{f.factor || f.name || f}</span>
               {f.points != null && (
-                <span className="text-[10px] font-mono font-bold shrink-0" style={{ color: gaugeColor }}>
+                <span className="text-[10px] font-mono font-bold shrink-0" style={{ color }}>
                   +{f.points}
                 </span>
               )}
