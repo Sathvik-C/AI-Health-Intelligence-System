@@ -331,30 +331,29 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-8">
           {/* 1A. HEALTH STORY */}
-          <section className="card bg-gradient-to-br from-[#161a29]/90 via-[#131623]/80 to-[#10121d]/90 border-white/[0.1] relative overflow-hidden p-6 md:p-8 shadow-2xl">
+          <section className="card relative overflow-hidden p-6 md:p-8 bg-gradient-to-br from-[#161a29] to-[#11131f] dark:from-[#161a29] dark:to-[#11131f] border-white/[0.1]">
             <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10 space-y-4">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono font-semibold tracking-widest text-brand-400 uppercase bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
+                <span className="text-[11px] font-mono font-semibold tracking-widest text-brand-500 dark:text-brand-400 uppercase bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
                   Clinical Synthesis
                 </span>
-                <span className="text-stone-500 text-xs font-mono">Automated Longitudinal Narrative</span>
+                <span className="text-stone-500 dark:text-stone-400 text-xs font-mono">Automated Longitudinal Narrative</span>
               </div>
-              <h2 className="text-xl md:text-2xl font-serif font-medium text-stone-100 leading-snug italic tracking-tight">
+              <h2 className="text-xl md:text-2xl font-serif font-medium text-stone-900 dark:text-stone-100 leading-snug italic tracking-tight">
                 “Your longitudinal health records show notable metabolic shifts and positive physiological adaptations.”
               </h2>
 
               <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
                 {observations.length > 0 ? (
                   observations.map((obs, idx) => (
-                    <div key={idx} className="flex items-start gap-3 text-xs md:text-sm text-stone-300 bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl backdrop-blur-sm">
-                      <div className="w-2 h-2 rounded-full bg-brand-400 mt-1.5 shrink-0 shadow-[0_0_8px_#f97316]" />
+                    <div key={idx} className="flex items-start gap-3 text-xs md:text-sm text-stone-700 dark:text-stone-300 bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.06] p-3 rounded-xl backdrop-blur-sm">
+                      <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.4)]" />
                       <span className="leading-relaxed">{obs.text}</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-stone-400">
+                  <p className="text-sm text-stone-500 dark:text-stone-400">
                     Upload more health records to build a clearer longitudinal trajectory.
                   </p>
                 )}

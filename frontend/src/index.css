@@ -742,9 +742,11 @@ html:not(.dark) .text-sky-300 {
 }
 
 /* Light mode overrides for hero gradients */
-html:not(.dark) .bg-gradient-to-br.from-\[\#161a29\].to-\[\#11131f\] {
-  background: linear-gradient(to bottom right, #ffffff, #f8fafc) !important;
+html:not(.dark) .bg-gradient-to-br.from-\[\#161a29\].to-\[\#11131f\],
+html:not(.dark) [class*="from-[#161a29]"] {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
   border-color: #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 html:not(.dark) .bg-gradient-to-r.from-surface-100.to-surface-200 {
