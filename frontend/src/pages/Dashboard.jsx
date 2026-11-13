@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
 import {
   TrendingUp,
@@ -43,6 +43,43 @@ import {
 import { format } from 'date-fns'
 import SkeletonLoader from '../components/SkeletonLoader'
 import EmptyState from '../components/EmptyState'
+
+function safeFormatDate(dateVal, formatStr = 'MMM d, yy') {
+  if (!dateVal) return ''
+  try {
+    const d = new Date(dateVal)
+    if (isNaN(d.getTime())) return ''
+    return format(d, formatStr)
+  } catch {
+    return ''
+  }
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error(`ErrorBoundary caught in [${this.props.name}]:`, error, errorInfo)
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="card p-4 bg-rose-500/10 border-rose-500/20 text-rose-200 text-xs space-y-1">
+          <div className="font-bold flex items-center gap-1.5 text-rose-400">
+            <AlertCircle size={14} /> Failed to render {this.props.name || 'section'}
+          </div>
+          <p className="font-mono text-[11px] opacity-80">{this.state.error?.message || String(this.state.error)}</p>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
@@ -143,7 +180,7 @@ export default function Dashboard() {
   if (reports.length > 0) {
     const latestReport = reports[0]
     observations.push({
-      text: `Latest laboratory report uploaded on ${format(new Date(latestReport.uploaded_at), 'MMM d, yyyy')} with ${latestReport.biomarker_count} extracted markers.`,
+      text: `Latest laboratory report uploaded on ${safeFormatDate(latestReport.uploaded_at, 'MMM d, yyyy')} with ${latestReport.biomarker_count || 'several'} extracted markers.`,
       highlight: false
     })
   }
@@ -394,7 +431,7 @@ export default function Dashboard() {
                           </div>
 
                           <div className="text-xs font-mono text-stone-400 shrink-0">
-                            {format(evt.date, 'MMM d, yyyy')}
+                            {safeFormatDate(evt.date, 'MMM d, yyyy')}
                           </div>
                         </div>
                       </div>
@@ -407,62 +444,56 @@ export default function Dashboard() {
 
           {/* 1D. ANOMALY ALERT BANNER */}
           {anomalies.length > 0 && !anomalyDismissed && (
-            <section>
-              <AnomalyAlertBanner anomalies={anomalies} onDismiss={() => setAnomalyDismissed(true)} />
-            </section>
+            <ErrorBoundary name="Anomaly Alerts">
+              <section>
+                <AnomalyAlertBanner anomalies={anomalies} onDismiss={() => setAnomalyDismissed(true)} />
+              </section>
+            </ErrorBoundary>
           )}
 
           {/* 1E. RISK SCORE GAUGES */}
           {riskScores && Object.keys(riskScores).length > 0 && (
-            <RiskScoreGauges riskScores={riskScores} />
+            <ErrorBoundary name="Risk Score Gauges">
+              <RiskScoreGauges riskScores={riskScores} />
+            </ErrorBoundary>
           )}
 
           {/* 1F. IMPORTANT HEALTH AREAS */}
-          <section className="space-y-4">
-            <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">Important Health Areas</h2>
-              <p className="text-xs text-stone-400 mt-0.5">Compact intelligent interpretation across organ systems</p>
-            </div>
+          <ErrorBoundary name="Important Health Areas">
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-tight">Important Health Areas</h2>
+                <p className="text-xs text-stone-400 mt-0.5">Compact intelligent interpretation across organ systems</p>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {healthAreas.map(area => (
-                <div key={area.key} className="card card-hover flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-mono font-bold text-stone-300 uppercase tracking-wider">{area.title}</span>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${area.statusClass}`}>
-                        {area.status}
-                      </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {healthAreas.map(area => (
+                  <div key={area.key} className="card card-hover flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-mono font-bold text-stone-300 uppercase tracking-wider">{area.title}</span>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${area.statusClass}`}>
+                          {area.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-400 leading-relaxed">
+                        "{area.description}"
+                      </p>
                     </div>
-                    <p className="text-xs text-stone-400 leading-relaxed">
-                      "{area.description}"
-                    </p>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+          </ErrorBoundary>
 
           {/* 1G. BIOMARKER STORY — Interactive */}
-          <BiomarkerStory biomarkerNames={biomarkerNames} allBiomarkers={allBiomarkers} />
+          <ErrorBoundary name="Biomarker Story">
+            <BiomarkerStory biomarkerNames={biomarkerNames} allBiomarkers={allBiomarkers} />
+          </ErrorBoundary>
         </div>
       )}
     </div>
   )
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   HELPERS
-   ───────────────────────────────────────────────────────────────────────── */
-function safeFormatDate(dateVal, formatStr = 'MMM d, yy') {
-  if (!dateVal) return ''
-  try {
-    const d = new Date(dateVal)
-    if (isNaN(d.getTime())) return ''
-    return format(d, formatStr)
-  } catch {
-    return ''
-  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -751,13 +782,13 @@ function statusMeta(status) {
 
 // Custom animated dot on the line
 function CustomDot({ cx, cy, payload, refMin, refMax, activeIndex, index, dataKey }) {
-  if (cx == null || cy == null || !payload || payload[dataKey] == null) return null
+  if (cx == null || cy == null || !Number.isFinite(cx) || !Number.isFinite(cy) || !payload || payload[dataKey] == null) return null
   const status = getRangeStatus(payload[dataKey], refMin, refMax)
   const meta   = statusMeta(status)
   const isActive = index === activeIndex
   const r = isActive ? 7 : 5
   return (
-    <g>
+    <g key={`dot-${index}`}>
       <circle cx={cx} cy={cy} r={r + 3} fill={meta.color} fillOpacity={isActive ? 0.18 : 0.08} />
       <circle cx={cx} cy={cy} r={r} fill={meta.color} stroke="#0b0d14" strokeWidth={2} />
     </g>
@@ -819,7 +850,7 @@ function BiomarkerCard({ name, history, isSelected, onClick }) {
       <div className="flex items-end gap-2">
         <span style={{ color: meta.color }} className="text-xl font-bold font-mono leading-none">{latest.value}</span>
         <span className="text-[10px] text-stone-400 mb-0.5">{latest.unit}</span>
-        {delta !== null && (
+        {delta !== null && Number.isFinite(delta) && (
           <span className={`text-[10px] font-semibold ml-auto mb-0.5 ${delta > 0 ? 'text-rose-400' : delta < 0 ? 'text-emerald-400' : 'text-stone-400'}`}>
             {delta > 0 ? '▲' : delta < 0 ? '▼' : '—'} {Math.abs(delta).toFixed(1)}
           </span>
@@ -1205,7 +1236,21 @@ function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
                       stroke="#818cf8"
                       strokeWidth={2}
                       strokeDasharray="6 3"
-                      dot={{ fill: '#818cf8', r: 4, fillOpacity: 0.7 }}
+                      dot={(dotProps) => {
+                        const { cx, cy, payload, index } = dotProps || {}
+                        if (!Number.isFinite(cx) || !Number.isFinite(cy) || payload?.forecastValue == null) return null
+                        return (
+                          <circle
+                            key={`fc-dot-${index}`}
+                            cx={cx}
+                            cy={cy}
+                            r={4}
+                            fill="#818cf8"
+                            stroke="#0b0d14"
+                            strokeWidth={1.5}
+                          />
+                        )
+                      }}
                       activeDot={false}
                       connectNulls={true}
                     />
