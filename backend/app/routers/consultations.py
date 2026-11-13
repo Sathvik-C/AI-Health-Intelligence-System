@@ -503,3 +503,4 @@ def delete_scheduled_test(
     db.delete(st)
     db.commit()
     return {"message": "Scheduled test removed"}
+
