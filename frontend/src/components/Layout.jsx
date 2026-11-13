@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Sun,
   Moon,
-  Network
+  Network,
+  Layers
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -51,6 +52,7 @@ const NAV_GROUPS = [
     items: [
       { to: '/insights', icon: Sparkles, label: 'Health Insights' },
       { to: '/correlations', icon: Network, label: 'Biomarker Heatmap' },
+      { to: '/overlay', icon: Layers, label: 'Wearable Overlay' },
       { to: '/ask', icon: MessageSquareQuote, label: 'Ask Your Health Record' },
     ]
   }
