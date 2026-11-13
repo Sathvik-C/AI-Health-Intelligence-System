@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
 import {
   TrendingUp,
@@ -16,8 +16,33 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle2,
-  HelpCircle
+  HelpCircle,
+  FlaskConical,
+  Target,
+  Zap,
+  BarChart2,
+  ShieldAlert,
+  ShieldCheck,
+  ShieldOff,
+  TrendingDown as TrendDown,
+  Info,
+  X,
 } from 'lucide-react'
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ReferenceLine,
+  ReferenceArea,
+  Legend,
+  RadialBarChart,
+  RadialBar,
+  PolarAngleAxis,
+} from 'recharts'
 import { format } from 'date-fns'
 import SkeletonLoader from '../components/SkeletonLoader'
 import EmptyState from '../components/EmptyState'
@@ -26,9 +51,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [biomarkerNames, setBiomarkerNames] = useState([])
   const [allBiomarkers, setAllBiomarkers] = useState([])
-  const [selectedBiomarker, setSelectedBiomarker] = useState('')
-  const [biomarkerHistory, setBiomarkerHistory] = useState([])
   const [riskScores, setRiskScores] = useState(null)
+  const [anomalies, setAnomalies] = useState([])
+  const [anomalyDismissed, setAnomalyDismissed] = useState(false)
   const [reports, setReports] = useState([])
   const [medicines, setMedicines] = useState([])
   const [manualLogs, setManualLogs] = useState([])
@@ -37,22 +62,15 @@ export default function Dashboard() {
     loadDashboardData()
   }, [])
 
-  useEffect(() => {
-    if (selectedBiomarker) {
-      const history = allBiomarkers
-        .filter(b => b.name.toLowerCase() === selectedBiomarker.toLowerCase())
-        .sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at))
-      setBiomarkerHistory(history)
-    }
-  }, [selectedBiomarker, allBiomarkers])
-
   const loadDashboardData = async () => {
     setLoading(true)
+    setAnomalyDismissed(false)
     try {
-      const [namesRes, allBiomarkersRes, riskRes, reportsRes, medicinesRes, logsRes] = await Promise.all([
+      const [namesRes, allBiomarkersRes, riskRes, anomaliesRes, reportsRes, medicinesRes, logsRes] = await Promise.all([
         api.get('/biomarkers/names').catch(() => ({ data: [] })),
         api.get('/biomarkers/').catch(() => ({ data: [] })),
         api.get('/biomarkers/risk-scores').catch(() => ({ data: null })),
+        api.get('/biomarkers/anomalies').catch(() => ({ data: [] })),
         api.get('/reports/').catch(() => ({ data: [] })),
         api.get('/medicines/').catch(() => ({ data: [] })),
         api.get('/logs/').catch(() => ({ data: [] })),
@@ -61,13 +79,10 @@ export default function Dashboard() {
       setBiomarkerNames(namesRes.data || [])
       setAllBiomarkers(allBiomarkersRes.data || [])
       setRiskScores(riskRes.data || null)
+      setAnomalies(anomaliesRes.data || [])
       setReports(reportsRes.data || [])
       setMedicines(medicinesRes.data || [])
       setManualLogs(logsRes.data || [])
-
-      if (namesRes.data && namesRes.data.length > 0) {
-        setSelectedBiomarker(namesRes.data[0])
-      }
     } catch (e) {
       console.error('Error loading dashboard data:', e)
     } finally {
@@ -393,7 +408,19 @@ export default function Dashboard() {
             )}
           </section>
 
-          {/* 1D. IMPORTANT HEALTH AREAS */}
+          {/* 1D. ANOMALY ALERT BANNER */}
+          {anomalies.length > 0 && !anomalyDismissed && (
+            <section>
+              <AnomalyAlertBanner anomalies={anomalies} onDismiss={() => setAnomalyDismissed(true)} />
+            </section>
+          )}
+
+          {/* 1E. RISK SCORE GAUGES */}
+          {riskScores && Object.keys(riskScores).length > 0 && (
+            <RiskScoreGauges riskScores={riskScores} />
+          )}
+
+          {/* 1F. IMPORTANT HEALTH AREAS */}
           <section className="space-y-4">
             <div>
               <h2 className="text-lg font-bold text-white tracking-tight">Important Health Areas</h2>
@@ -419,64 +446,803 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 1E. BIOMARKER STORY */}
-          <section className="card p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
-              <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Your biomarkers tell a story</h2>
-                <p className="text-xs text-stone-400 mt-0.5">Select a biomarker to observe its historical progression across available reports</p>
-              </div>
-
-              {biomarkerNames.length > 0 && (
-                <select
-                  value={selectedBiomarker}
-                  onChange={e => setSelectedBiomarker(e.target.value)}
-                  className="input sm:w-56 text-xs"
-                >
-                  {biomarkerNames.map(n => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            {biomarkerHistory.length === 0 ? (
-              <p className="text-sm text-stone-400 text-center py-6">Select a biomarker above to view its narrative history.</p>
-            ) : (
-              <div className="space-y-6">
-                {/* Trend line nodes */}
-                <div className="bg-surface-300/40 p-5 rounded-xl border border-white/[0.06] overflow-x-auto">
-                  <div className="text-xs font-mono font-semibold text-brand-400 uppercase tracking-wider mb-4">
-                    {selectedBiomarker} ({biomarkerHistory[0]?.unit || ''})
-                  </div>
-
-                  <div className="flex items-center justify-around min-w-[320px] py-4 relative">
-                    <div className="absolute left-8 right-8 top-1/2 -translate-y-1/2 h-0.5 bg-brand-500/30 -z-0" />
-                    {biomarkerHistory.map((point, idx) => (
-                      <div key={idx} className="relative z-10 flex flex-col items-center group">
-                        <div className="w-9 h-9 rounded-full bg-stone-900 border-2 border-brand-500 text-white font-mono text-xs font-bold flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                          {point.value}
-                        </div>
-                        <span className="text-[10px] font-mono text-stone-400 mt-2">
-                          {format(new Date(point.recorded_at), 'MMM d, yyyy')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="text-xs text-stone-300 leading-relaxed bg-white/[0.02] p-4 rounded-lg border border-white/[0.05]">
-                  <span className="font-semibold text-white mr-1">Historical Context:</span>
-                  {biomarkerHistory.length === 1
-                    ? `Single recorded measurement of ${biomarkerHistory[0].value} ${biomarkerHistory[0].unit} on ${format(new Date(biomarkerHistory[0].recorded_at), 'MMM d, yyyy')}. Upload additional laboratory reports to track change over time.`
-                    : `Tracked over ${biomarkerHistory.length} reports from ${format(new Date(biomarkerHistory[0].recorded_at), 'MMM d, yyyy')} (${biomarkerHistory[0].value} ${biomarkerHistory[0].unit}) to ${format(new Date(biomarkerHistory[biomarkerHistory.length - 1].recorded_at), 'MMM d, yyyy')} (${biomarkerHistory[biomarkerHistory.length - 1].value} ${biomarkerHistory[biomarkerHistory.length - 1].unit}).`
-                  }
-                </div>
-              </div>
-            )}
-          </section>
+          {/* 1G. BIOMARKER STORY — Interactive */}
+          <BiomarkerStory biomarkerNames={biomarkerNames} allBiomarkers={allBiomarkers} />
         </div>
       )}
     </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ANOMALY ALERT BANNER
+   ───────────────────────────────────────────────────────────────────────── */
+function AnomalyAlertBanner({ anomalies, onDismiss }) {
+  const top = anomalies.slice(0, 4)
+  const hasHigh = top.some(a => a.severity === 'high')
+
+  return (
+    <div
+      className="relative rounded-2xl border p-5 overflow-hidden"
+      style={{
+        background: hasHigh ? 'rgba(244,63,94,0.06)' : 'rgba(245,158,11,0.06)',
+        borderColor: hasHigh ? 'rgba(244,63,94,0.3)' : 'rgba(245,158,11,0.3)',
+      }}
+    >
+      {/* dismiss */}
+      <button
+        onClick={onDismiss}
+        className="absolute top-3 right-3 text-stone-400 hover:text-white transition-colors"
+      >
+        <X size={16} />
+      </button>
+
+      <div className="flex items-start gap-3 mb-4">
+        <div
+          className="p-2.5 rounded-xl shrink-0"
+          style={{
+            background: hasHigh ? 'rgba(244,63,94,0.12)' : 'rgba(245,158,11,0.12)',
+            color: hasHigh ? '#f43f5e' : '#f59e0b',
+          }}
+        >
+          <ShieldAlert size={20} />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-white">
+            {anomalies.length} Unusual Reading{anomalies.length > 1 ? 's' : ''} Detected
+          </h3>
+          <p className="text-xs text-stone-400 mt-0.5">
+            Statistical anomalies found in your biomarker history — values that deviate significantly from your personal baseline.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {top.map((a, i) => {
+          const isHigh = a.severity === 'high'
+          const color  = isHigh ? '#f43f5e' : '#f59e0b'
+          const bg     = isHigh ? 'rgba(244,63,94,0.08)' : 'rgba(245,158,11,0.08)'
+          const border = isHigh ? 'rgba(244,63,94,0.2)' : 'rgba(245,158,11,0.2)'
+          return (
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-xl p-3"
+              style={{ background: bg, border: `1px solid ${border}` }}
+            >
+              <div className="text-center min-w-[52px]">
+                <div className="text-xl font-bold font-mono" style={{ color }}>{a.value}</div>
+                <div className="text-[9px] text-stone-500 mt-0.5">z={a.z_score?.toFixed(1)}</div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-white truncate">{a.name}</div>
+                <div className="text-[10px] text-stone-400">
+                  {a.recorded_at ? format(new Date(a.recorded_at), 'MMM d, yyyy') : ''}
+                </div>
+              </div>
+              <span
+                className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0"
+                style={{ color, borderColor: border, background: bg }}
+              >
+                {isHigh ? 'High' : 'Medium'}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      {anomalies.length > 4 && (
+        <p className="text-xs text-stone-500 mt-3 text-center">
+          + {anomalies.length - 4} more anomalies — review your biomarker history below.
+        </p>
+      )}
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RISK SCORE GAUGES
+   ───────────────────────────────────────────────────────────────────────── */
+const RISK_DOMAIN_ICONS = {
+  diabetes:       { icon: Activity,     color: '#6366f1' },
+  cardiovascular: { icon: Activity,     color: '#f43f5e' },
+  kidney:         { icon: FlaskConical, color: '#06b6d4' },
+  liver:          { icon: FlaskConical, color: '#f59e0b' },
+  thyroid:        { icon: Zap,          color: '#a78bfa' },
+  anemia:         { icon: Activity,     color: '#fb923c' },
+  inflammation:   { icon: ShieldAlert,  color: '#f43f5e' },
+}
+
+function getRiskColor(score) {
+  if (score >= 67) return '#f43f5e'
+  if (score >= 34) return '#f59e0b'
+  return '#10b981'
+}
+
+function RiskGauge({ domain, label, score, factors }) {
+  const [expanded, setExpanded] = useState(false)
+  const color = getRiskColor(score)
+  const domainInfo = RISK_DOMAIN_ICONS[domain] || { color: '#6366f1' }
+  const gaugeColor = domainInfo.color !== '#6366f1' ? color : color
+
+  const data = [{ value: score, fill: gaugeColor }]
+
+  return (
+    <div
+      className="card card-hover flex flex-col items-center cursor-pointer select-none relative"
+      style={{ padding: '16px 12px' }}
+      onClick={() => setExpanded(e => !e)}
+    >
+      {/* Arc gauge */}
+      <div className="relative w-full" style={{ height: 100 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <RadialBarChart
+            cx="50%"
+            cy="85%"
+            innerRadius="70%"
+            outerRadius="100%"
+            startAngle={180}
+            endAngle={0}
+            data={data}
+            barSize={10}
+          >
+            {/* Background track */}
+            <RadialBar
+              dataKey="value"
+              cornerRadius={6}
+              background={{ fill: 'rgba(255,255,255,0.05)' }}
+              clockWise
+            />
+            <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+          </RadialBarChart>
+        </ResponsiveContainer>
+
+        {/* Score in center */}
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-1 pointer-events-none">
+          <span className="text-2xl font-bold font-mono leading-none" style={{ color: gaugeColor }}>
+            {score}
+          </span>
+          <span className="text-[9px] text-stone-500 mt-0.5">/ 100</span>
+        </div>
+      </div>
+
+      {/* Label */}
+      <p className="text-[10px] font-mono font-semibold text-stone-300 uppercase tracking-wider text-center mt-1 leading-tight">
+        {label.replace(' Risk', '')}
+      </p>
+
+      {/* Risk badge */}
+      <span
+        className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border mt-2"
+        style={{
+          color: gaugeColor,
+          borderColor: `${gaugeColor}40`,
+          background: `${gaugeColor}12`,
+        }}
+      >
+        {score >= 67 ? 'High' : score >= 34 ? 'Moderate' : 'Low'}
+      </span>
+
+      {/* Expand arrow */}
+      <ChevronRight
+        size={12}
+        className="mt-2 text-stone-500 transition-transform"
+        style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
+      />
+
+      {/* Expanded factors */}
+      {expanded && factors && factors.length > 0 && (
+        <div
+          className="absolute top-full left-0 right-0 z-30 mt-2 rounded-xl border p-3 space-y-1.5 shadow-2xl"
+          style={{
+            background: '#161a29',
+            borderColor: `${gaugeColor}30`,
+            minWidth: 180,
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          <p className="text-[9px] font-mono font-semibold text-stone-500 uppercase tracking-wider mb-2">
+            Contributing Factors
+          </p>
+          {factors.map((f, i) => (
+            <div key={i} className="flex items-center justify-between gap-2">
+              <span className="text-[10px] text-stone-300 truncate">{f.factor || f.name || f}</span>
+              {f.points != null && (
+                <span className="text-[10px] font-mono font-bold shrink-0" style={{ color: gaugeColor }}>
+                  +{f.points}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RiskScoreGauges({ riskScores }) {
+  const domains = Object.entries(riskScores)
+  const overall = Math.round(domains.reduce((sum, [, v]) => sum + (v.score || 0), 0) / domains.length)
+  const overallColor = getRiskColor(overall)
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2 text-brand-400 text-[11px] font-mono font-semibold tracking-widest uppercase mb-1">
+            <ShieldCheck size={13} /> AI Risk Intelligence
+          </div>
+          <h2 className="text-lg font-bold text-white tracking-tight">Health Risk Assessment</h2>
+          <p className="text-xs text-stone-400 mt-0.5">
+            AI-computed risk scores across 7 health domains based on your biomarker history · click any gauge for details
+          </p>
+        </div>
+        {/* Overall pill */}
+        <div
+          className="flex items-center gap-3 rounded-2xl border px-4 py-2.5 self-start sm:self-auto shrink-0"
+          style={{ background: `${overallColor}10`, borderColor: `${overallColor}30` }}
+        >
+          <div>
+            <div className="text-[10px] text-stone-500 font-mono uppercase tracking-wider">Overall Risk</div>
+            <div className="text-2xl font-bold font-mono" style={{ color: overallColor }}>{overall}</div>
+          </div>
+          <div
+            className="text-[11px] font-bold uppercase px-2.5 py-1 rounded-full border"
+            style={{ color: overallColor, borderColor: `${overallColor}40`, background: `${overallColor}15` }}
+          >
+            {overall >= 67 ? 'High' : overall >= 34 ? 'Moderate' : 'Low'}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        {domains.map(([domain, data]) => (
+          <RiskGauge
+            key={domain}
+            domain={domain}
+            label={data.label || domain}
+            score={data.score || 0}
+            factors={data.factors || []}
+          />
+        ))}
+      </div>
+
+      {/* Disclaimer */}
+      <p className="text-[10px] text-stone-600 text-center pt-1">
+        <Info size={10} className="inline mr-1" />
+        Risk scores are informational estimates based on available biomarker data. Not a medical diagnosis.
+      </p>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   BIOMARKER STORY — Full interactive panel
+   ───────────────────────────────────────────────────────────────────────── */
+
+// Status helpers
+function getRangeStatus(value, refMin, refMax) {
+  if (refMin == null && refMax == null) return 'unknown'
+  if (refMax != null && value > refMax) return 'high'
+  if (refMin != null && value < refMin) return 'low'
+  return 'normal'
+}
+
+function statusMeta(status) {
+  switch (status) {
+    case 'high':   return { label: 'Above Range', color: '#f43f5e', bg: 'rgba(244,63,94,0.08)',   border: 'rgba(244,63,94,0.3)',   badge: 'risk-red'    }
+    case 'low':    return { label: 'Below Range', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.3)', badge: 'risk-yellow' }
+    case 'normal': return { label: 'In Range',    color: '#10b981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.3)',  badge: 'risk-green'  }
+    default:       return { label: 'No Range',    color: '#6366f1', bg: 'rgba(99,102,241,0.08)',  border: 'rgba(99,102,241,0.3)',  badge: 'risk-blue'   }
+  }
+}
+
+// Custom animated dot on the line
+function CustomDot({ cx, cy, payload, refMin, refMax, activeIndex, index, dataKey }) {
+  if (cx == null || cy == null) return null
+  const status = getRangeStatus(payload[dataKey], refMin, refMax)
+  const meta   = statusMeta(status)
+  const isActive = index === activeIndex
+  const r = isActive ? 7 : 5
+  return (
+    <g>
+      <circle cx={cx} cy={cy} r={r + 3} fill={meta.color} fillOpacity={isActive ? 0.18 : 0.08} />
+      <circle cx={cx} cy={cy} r={r} fill={meta.color} stroke="#0b0d14" strokeWidth={2} />
+    </g>
+  )
+}
+
+// Custom tooltip
+function BiomarkerTooltip({ active, payload, label, refMin, refMax, unit }) {
+  if (!active || !payload?.length) return null
+  const val    = payload[0]?.value
+  const status = getRangeStatus(val, refMin, refMax)
+  const meta   = statusMeta(status)
+  return (
+    <div style={{ background: '#161a29', border: `1px solid ${meta.border}`, borderRadius: 12, padding: '12px 16px', minWidth: 180 }}>
+      <p style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4, fontFamily: 'monospace' }}>{label}</p>
+      <p style={{ color: meta.color, fontSize: 22, fontWeight: 700, fontFamily: 'monospace', margin: 0 }}>
+        {val} <span style={{ fontSize: 12, opacity: 0.7 }}>{unit}</span>
+      </p>
+      <span style={{
+        display: 'inline-block', marginTop: 6, fontSize: 10, fontWeight: 600,
+        padding: '2px 8px', borderRadius: 20, border: `1px solid ${meta.border}`,
+        background: meta.bg, color: meta.color, textTransform: 'uppercase', letterSpacing: '0.07em'
+      }}>
+        {meta.label}
+      </span>
+      {refMin != null && refMax != null && (
+        <p style={{ color: '#64748b', fontSize: 10, marginTop: 6, fontFamily: 'monospace' }}>
+          Reference: {refMin} – {refMax} {unit}
+        </p>
+      )}
+    </div>
+  )
+}
+
+// Mini sparkline card for the biomarker grid
+function BiomarkerCard({ name, history, isSelected, onClick }) {
+  if (!history.length) return null
+  const latest   = history[history.length - 1]
+  const prev     = history.length > 1 ? history[history.length - 2] : null
+  const delta    = prev ? latest.value - prev.value : null
+  const status   = getRangeStatus(latest.value, latest.ref_min, latest.ref_max)
+  const meta     = statusMeta(status)
+  const sparkData = history.map(h => ({ v: h.value }))
+
+  return (
+    <button
+      onClick={onClick}
+      className={`card card-hover text-left transition-all w-full ${isSelected ? 'ring-2 ring-brand-500/60' : ''}`}
+      style={isSelected ? { borderColor: 'rgba(234,88,12,0.4)' } : {}}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <span className="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-wider leading-tight">{name}</span>
+        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${meta.badge}`}>{meta.label}</span>
+      </div>
+      <div className="flex items-end gap-2">
+        <span style={{ color: meta.color }} className="text-xl font-bold font-mono leading-none">{latest.value}</span>
+        <span className="text-[10px] text-stone-400 mb-0.5">{latest.unit}</span>
+        {delta !== null && (
+          <span className={`text-[10px] font-semibold ml-auto mb-0.5 ${delta > 0 ? 'text-rose-400' : delta < 0 ? 'text-emerald-400' : 'text-stone-400'}`}>
+            {delta > 0 ? '▲' : delta < 0 ? '▼' : '—'} {Math.abs(delta).toFixed(1)}
+          </span>
+        )}
+      </div>
+      {/* Mini sparkline */}
+      {sparkData.length > 1 && (
+        <div className="mt-2 h-8">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={sparkData}>
+              <Line type="monotone" dataKey="v" stroke={meta.color} strokeWidth={1.5} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+      {latest.ref_min != null && latest.ref_max != null && (
+        <p className="text-[9px] text-stone-500 mt-1.5 font-mono">
+          Ref: {latest.ref_min} – {latest.ref_max} {latest.unit}
+        </p>
+      )}
+    </button>
+  )
+}
+
+function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
+  const [selectedBiomarker, setSelectedBiomarker] = useState('')
+  const [biomarkerHistory, setBiomarkerHistory]   = useState([])
+  const [searchQuery, setSearchQuery]             = useState('')
+  const [activeIndex, setActiveIndex]             = useState(null)
+  const [category, setCategory]                   = useState('All')
+  const [forecast, setForecast]                   = useState(null)
+  const [forecastLoading, setForecastLoading]     = useState(false)
+
+  // Category buckets
+  const CATEGORIES = {
+    'All':        () => true,
+    'Glucose':    n => /glucose|hba1c|sugar|insulin/i.test(n),
+    'Lipids':     n => /cholesterol|ldl|hdl|triglyceride|vldl/i.test(n),
+    'Blood':      n => /hemoglobin|rbc|wbc|platelet|mch|mcv|hematocrit|ferritin|iron/i.test(n),
+    'Kidney':     n => /creatinine|bun|egfr|uric/i.test(n),
+    'Liver':      n => /sgpt|sgot|alt|ast|bilirubin|alkaline|protein|albumin/i.test(n),
+    'Thyroid':    n => /tsh|t3|t4|thyroid/i.test(n),
+    'Vitamins':   n => /vitamin|b12|d3|folate/i.test(n),
+    'Vitals':     n => /bp|blood pressure|systolic|diastolic|bmi|pulse|weight/i.test(n),
+    'Inflammation': n => /crp|esr|fibrinogen/i.test(n),
+  }
+
+  const categoryFilter = CATEGORIES[category] || (() => true)
+  const filteredNames = biomarkerNames.filter(n =>
+    categoryFilter(n) && n.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  useEffect(() => {
+    if (biomarkerNames.length > 0 && !selectedBiomarker) {
+      setSelectedBiomarker(biomarkerNames[0])
+    }
+  }, [biomarkerNames])
+
+  useEffect(() => {
+    if (selectedBiomarker) {
+      const history = allBiomarkers
+        .filter(b => b.name.toLowerCase() === selectedBiomarker.toLowerCase())
+        .sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at))
+      setBiomarkerHistory(history)
+      setActiveIndex(history.length - 1)
+    }
+  }, [selectedBiomarker, allBiomarkers])
+
+  // Fetch forecast when biomarker selected and has ≥2 readings
+  useEffect(() => {
+    if (!selectedBiomarker) return
+    const history = allBiomarkers
+      .filter(b => b.name.toLowerCase() === selectedBiomarker.toLowerCase())
+    if (history.length < 2) { setForecast(null); return }
+    setForecastLoading(true)
+    setForecast(null)
+    api.get(`/biomarkers/forecast/${encodeURIComponent(selectedBiomarker)}`)
+      .then(r => setForecast(r.data))
+      .catch(() => setForecast(null))
+      .finally(() => setForecastLoading(false))
+  }, [selectedBiomarker, allBiomarkers])
+
+  if (biomarkerNames.length === 0) {
+    return (
+      <section className="card p-6 text-center space-y-2">
+        <FlaskConical size={32} className="mx-auto text-stone-500" />
+        <p className="text-sm text-stone-400">Upload lab reports to see your biomarker trends here.</p>
+      </section>
+    )
+  }
+
+  // Chart data — merge historical + forecast
+  const historicalChartData = biomarkerHistory.map(h => ({
+    date:     format(new Date(h.recorded_at), 'MMM d, yy'),
+    value:    h.value,
+    ref_min:  h.ref_min,
+    ref_max:  h.ref_max,
+  }))
+
+  const forecastChartData = forecast?.forecast?.map(f => ({
+    date:          format(new Date(f.date), 'MMM d, yy'),
+    forecastValue: f.value,
+    ref_min:       refMin,
+    ref_max:       refMax,
+  })) || []
+
+  // Bridge point: last historical carries forecastValue too so lines connect
+  const bridgedHistorical = historicalChartData.map((d, i) =>
+    i === historicalChartData.length - 1 && forecastChartData.length > 0
+      ? { ...d, forecastValue: d.value }
+      : d
+  )
+
+  const chartData = [...bridgedHistorical, ...forecastChartData]
+
+  const latest   = biomarkerHistory[biomarkerHistory.length - 1]
+  const refMin   = latest?.ref_min ?? null
+  const refMax   = latest?.ref_max ?? null
+  const unit     = latest?.unit || ''
+  const status   = latest ? getRangeStatus(latest.value, refMin, refMax) : 'unknown'
+  const meta     = statusMeta(status)
+
+  // Trend across full history
+  const first    = biomarkerHistory[0]
+  const totalDelta = first && latest ? latest.value - first.value : null
+  const totalPct   = first && first.value !== 0 ? ((totalDelta / first.value) * 100).toFixed(1) : null
+
+  // y-axis domain with padding — include forecast values too
+  const allVals = chartData.map(d => d.value ?? d.forecastValue).filter(v => v != null)
+  const yPad    = (Math.max(...allVals) - Math.min(...allVals)) * 0.4 || 2
+  const yMin    = Math.min(...allVals, refMin ?? Infinity) - yPad
+  const yMax    = Math.max(...allVals, refMax ?? -Infinity) + yPad
+
+  // History for all biomarkers (for the grid)
+  const allHistories = {}
+  biomarkerNames.forEach(name => {
+    allHistories[name] = allBiomarkers
+      .filter(b => b.name.toLowerCase() === name.toLowerCase())
+      .sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at))
+  })
+
+  return (
+    <section className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 text-brand-400 text-[11px] font-mono font-semibold tracking-widest uppercase mb-1">
+            <BarChart2 size={13} /> Biomarker Intelligence
+          </div>
+          <h2 className="text-lg font-bold text-white tracking-tight">Your biomarkers tell a story</h2>
+          <p className="text-xs text-stone-400 mt-0.5">
+            {biomarkerNames.length} biomarkers tracked · select any to explore its journey
+          </p>
+        </div>
+        {/* Search */}
+        <input
+          type="text"
+          placeholder="Search biomarkers…"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="input sm:w-52 text-xs"
+        />
+      </div>
+
+      {/* Category pills */}
+      <div className="flex flex-wrap gap-2">
+        {Object.keys(CATEGORIES).map(cat => (
+          <button
+            key={cat}
+            onClick={() => setCategory(cat)}
+            className={`text-[10px] font-semibold px-3 py-1 rounded-full border transition-all ${
+              category === cat
+                ? 'bg-brand-500 border-brand-500 text-white'
+                : 'border-white/10 text-stone-400 hover:border-white/20 hover:text-stone-200'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        {/* LEFT — Biomarker grid */}
+        <div className="xl:col-span-2 space-y-3">
+          <p className="text-[10px] font-mono text-stone-500 uppercase tracking-wider">
+            {filteredNames.length} markers · click to inspect
+          </p>
+          <div className="grid grid-cols-2 gap-2.5 max-h-[560px] overflow-y-auto pr-1">
+            {filteredNames.map(name => (
+              <BiomarkerCard
+                key={name}
+                name={name}
+                history={allHistories[name] || []}
+                isSelected={name === selectedBiomarker}
+                onClick={() => setSelectedBiomarker(name)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT — Detail chart */}
+        <div className="xl:col-span-3 space-y-4">
+
+          {/* Selected biomarker header */}
+          <div className="card p-4 flex flex-wrap items-center gap-4">
+            <div style={{ background: meta.bg, border: `1px solid ${meta.border}` }}
+                 className="p-3 rounded-xl">
+              <FlaskConical size={20} style={{ color: meta.color }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base font-bold text-white truncate">{selectedBiomarker}</h3>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${meta.badge}`}>
+                  {meta.label}
+                </span>
+              </div>
+              <p className="text-xs text-stone-400 mt-0.5">
+                {biomarkerHistory.length} reading{biomarkerHistory.length !== 1 ? 's' : ''} recorded
+                {refMin != null && refMax != null && ` · Reference: ${refMin} – ${refMax} ${unit}`}
+              </p>
+            </div>
+            {/* Stat pills */}
+            <div className="flex gap-3 ml-auto">
+              {latest && (
+                <div className="text-center">
+                  <div style={{ color: meta.color }} className="text-2xl font-bold font-mono leading-none">
+                    {latest.value}
+                  </div>
+                  <div className="text-[10px] text-stone-400 mt-0.5">{unit} · latest</div>
+                </div>
+              )}
+              {totalDelta !== null && (
+                <div className="text-center">
+                  <div className={`text-lg font-bold font-mono leading-none ${totalDelta > 0 ? 'text-rose-400' : totalDelta < 0 ? 'text-emerald-400' : 'text-stone-400'}`}>
+                    {totalDelta > 0 ? '+' : ''}{totalDelta.toFixed(1)}
+                  </div>
+                  <div className="text-[10px] text-stone-400 mt-0.5">
+                    {totalPct ? `${totalPct}%` : ''} overall
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Chart */}
+          <div className="card p-5">
+            {/* Forecast header row */}
+            {biomarkerHistory.length >= 2 && (
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                {forecastLoading && (
+                  <span className="text-[10px] text-stone-500 font-mono flex items-center gap-1">
+                    <RefreshCw size={10} className="animate-spin" /> Loading forecast…
+                  </span>
+                )}
+                {forecast && !forecastLoading && (
+                  <>
+                    <span className="flex items-center gap-1.5 text-[10px] font-mono text-stone-400">
+                      <span className="inline-block w-6 border-t-2 border-dashed border-indigo-400/70" />
+                      AI 90-day forecast
+                    </span>
+                    {forecast.slope != null && (
+                      <span className={`flex items-center gap-1 text-[10px] font-semibold ${forecast.slope > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                        {forecast.slope > 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                        {forecast.slope > 0 ? 'Rising trend' : 'Falling trend'}
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {biomarkerHistory.length === 0 ? (
+              <p className="text-sm text-stone-400 text-center py-8">No data for this biomarker.</p>
+            ) : biomarkerHistory.length === 1 ? (
+              <div className="py-8 text-center">
+                <div style={{ color: meta.color }} className="text-4xl font-bold font-mono">{latest.value}</div>
+                <div className="text-stone-400 text-sm mt-1">{unit}</div>
+                <div className={`inline-block mt-3 text-xs font-semibold px-3 py-1 rounded-full border ${meta.badge}`}>{meta.label}</div>
+                {refMin != null && refMax != null && (
+                  <p className="text-xs text-stone-500 mt-2 font-mono">Reference range: {refMin} – {refMax} {unit}</p>
+                )}
+                <p className="text-xs text-stone-500 mt-4">Upload more reports to see the trend chart.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart
+                  data={chartData}
+                  onMouseMove={e => { if (e.activeTooltipIndex != null) setActiveIndex(e.activeTooltipIndex) }}
+                  onMouseLeave={() => setActiveIndex(biomarkerHistory.length - 1)}
+                  margin={{ top: 16, right: 24, bottom: 4, left: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={meta.color} stopOpacity={0.3} />
+                      <stop offset="100%" stopColor={meta.color} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+
+                  <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.05)" />
+
+                  {/* Reference band — normal zone shaded green */}
+                  {refMin != null && refMax != null && (
+                    <ReferenceArea
+                      y1={refMin} y2={refMax}
+                      fill="rgba(16,185,129,0.07)"
+                      stroke="rgba(16,185,129,0.25)"
+                      strokeDasharray="4 2"
+                      label={{
+                        value: `Normal Zone (${refMin}–${refMax} ${unit})`,
+                        position: 'insideTopLeft',
+                        fill: 'rgba(16,185,129,0.6)',
+                        fontSize: 10,
+                        fontFamily: 'monospace',
+                      }}
+                    />
+                  )}
+
+                  {/* Individual reference lines */}
+                  {refMax != null && (
+                    <ReferenceLine
+                      y={refMax} stroke="rgba(244,63,94,0.5)" strokeDasharray="6 3" strokeWidth={1.5}
+                      label={{ value: `Max ${refMax}`, position: 'right', fill: 'rgba(244,63,94,0.7)', fontSize: 10 }}
+                    />
+                  )}
+                  {refMin != null && (
+                    <ReferenceLine
+                      y={refMin} stroke="rgba(245,158,11,0.5)" strokeDasharray="6 3" strokeWidth={1.5}
+                      label={{ value: `Min ${refMin}`, position: 'right', fill: 'rgba(245,158,11,0.7)', fontSize: 10 }}
+                    />
+                  )}
+
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'monospace' }}
+                    axisLine={false} tickLine={false}
+                  />
+                  <YAxis
+                    domain={[Math.max(0, yMin), yMax]}
+                    tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'monospace' }}
+                    axisLine={false} tickLine={false} width={44}
+                  />
+                  <Tooltip content={<BiomarkerTooltip refMin={refMin} refMax={refMax} unit={unit} />} />
+
+                  {/* Historical line */}
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={meta.color}
+                    strokeWidth={2.5}
+                    dot={(props) => (
+                      <CustomDot
+                        {...props}
+                        refMin={refMin}
+                        refMax={refMax}
+                        activeIndex={activeIndex}
+                        dataKey="value"
+                      />
+                    )}
+                    activeDot={false}
+                    connectNulls={false}
+                  />
+
+                  {/* Forecast dashed line */}
+                  {forecast && forecastChartData.length > 0 && (
+                    <Line
+                      type="monotone"
+                      dataKey="forecastValue"
+                      stroke="#818cf8"
+                      strokeWidth={2}
+                      strokeDasharray="6 3"
+                      dot={{ fill: '#818cf8', r: 4, fillOpacity: 0.7 }}
+                      activeDot={false}
+                      connectNulls={true}
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+
+            {/* Forecast warning */}
+            {forecast?.warning && (
+              <div className="mt-3 flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs"
+                   style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24' }}>
+                <Info size={13} className="shrink-0 mt-0.5" />
+                <span>{forecast.warning}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Timeline of readings */}
+          {biomarkerHistory.length > 1 && (
+            <div className="card p-4 space-y-3">
+              <div className="text-[10px] font-mono font-semibold text-stone-500 uppercase tracking-wider">Reading History</div>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {[...biomarkerHistory].reverse().map((h, idx) => {
+                  const s = getRangeStatus(h.value, h.ref_min, h.ref_max)
+                  const m = statusMeta(s)
+                  const isLatest = idx === 0
+                  return (
+                    <div key={h.id} className="flex items-center justify-between gap-4 text-xs py-1.5 border-b border-white/[0.05] last:border-0">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color }} />
+                        <span className="text-stone-400 font-mono">{format(new Date(h.recorded_at), 'MMM d, yyyy')}</span>
+                        {isLatest && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-brand-500/15 text-brand-400 border border-brand-500/20 font-semibold">Latest</span>}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono font-bold" style={{ color: m.color }}>{h.value}</span>
+                        <span className="text-stone-500">{h.unit}</span>
+                        <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border ${m.badge}`}>{m.label}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Summary insight box */}
+          {biomarkerHistory.length > 1 && (
+            <div className="card p-4 flex gap-3" style={{ borderColor: meta.border, background: meta.bg }}>
+              <Zap size={16} style={{ color: meta.color }} className="shrink-0 mt-0.5" />
+              <p className="text-xs leading-relaxed" style={{ color: meta.color }}>
+                <span className="font-bold">{selectedBiomarker}</span> has been tracked across {' '}
+                <span className="font-bold">{biomarkerHistory.length} reports</span> from {' '}
+                <span className="font-bold">{format(new Date(biomarkerHistory[0].recorded_at), 'MMM d, yyyy')}</span> to {' '}
+                <span className="font-bold">{format(new Date(biomarkerHistory[biomarkerHistory.length - 1].recorded_at), 'MMM d, yyyy')}</span>.
+                {totalDelta !== null && Math.abs(totalDelta) > 0 && (
+                  <> Overall it has {totalDelta > 0 ? 'increased' : 'decreased'} by{' '}
+                  <span className="font-bold">{Math.abs(totalDelta).toFixed(1)} {unit}</span>
+                  {totalPct && <> ({Math.abs(Number(totalPct))}%)</>}.</>
+                )}
+                {refMin != null && refMax != null && (
+                  <> The reference range is <span className="font-bold">{refMin}–{refMax} {unit}</span>
+                  , and your latest reading is <span className="font-bold">{meta.label.toLowerCase()}</span>.</>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   )
 }
