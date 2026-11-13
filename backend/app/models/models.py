@@ -18,6 +18,7 @@ class User(Base):
     diet_plans = relationship("DietPlan", back_populates="user")
 
     wearable_data = relationship("WearableDaily",back_populates="user",cascade="all, delete-orphan")
+    consultations = relationship("Consultation", back_populates="user", cascade="all, delete-orphan")
 
 class WearableDaily(Base):
     __tablename__ = "wearable_daily"
@@ -116,3 +117,60 @@ class DietPlan(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="diet_plans")
+
+
+class Consultation(Base):
+    __tablename__ = "consultations"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    doctor_name = Column(String, nullable=False)
+    doctor_specialty = Column(String, nullable=True)
+    consultation_date = Column(Date, nullable=False, default=datetime.utcnow().date)
+    soap_subjective = Column(Text, nullable=True)
+    soap_objective = Column(Text, nullable=True)
+    soap_assessment = Column(Text, nullable=True)
+    soap_plan = Column(Text, nullable=True)
+    lifestyle_notes = Column(Text, nullable=True)
+    follow_up_date = Column(Date, nullable=True)
+    follow_up_time = Column(String, nullable=True)
+    status = Column(String, default="active")  # active, completed, cancelled
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="consultations")
+    prescriptions = relationship("PrescriptionChange", back_populates="consultation", cascade="all, delete-orphan", order_by="PrescriptionChange.id.asc()")
+    scheduled_tests = relationship("ScheduledTest", back_populates="consultation", cascade="all, delete-orphan", order_by="ScheduledTest.due_date.asc()")
+
+
+class PrescriptionChange(Base):
+    __tablename__ = "prescription_changes"
+    id = Column(Integer, primary_key=True, index=True)
+    consultation_id = Column(Integer, ForeignKey("consultations.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    drug_name = Column(String, nullable=False)
+    previous_dosage = Column(String, nullable=True)
+    new_dosage = Column(String, nullable=True)
+    frequency = Column(String, nullable=True)
+    change_type = Column(String, nullable=False, default="added")  # added, modified, stopped, continued
+    reason = Column(Text, nullable=True)
+    synced_to_medicines = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    consultation = relationship("Consultation", back_populates="prescriptions")
+
+
+class ScheduledTest(Base):
+    __tablename__ = "scheduled_tests"
+    id = Column(Integer, primary_key=True, index=True)
+    consultation_id = Column(Integer, ForeignKey("consultations.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    test_name = Column(String, nullable=False)
+    due_date = Column(Date, nullable=False, index=True)
+    frequency = Column(String, default="once")  # once, weekly, monthly
+    instructions = Column(Text, nullable=True)
+    completed = Column(Boolean, default=False, index=True)
+    completed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    consultation = relationship("Consultation", back_populates="scheduled_tests")
+

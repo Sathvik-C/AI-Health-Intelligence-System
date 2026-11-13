@@ -19,7 +19,8 @@ import {
   Sun,
   Moon,
   Network,
-  Layers
+  Layers,
+  Stethoscope
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -41,6 +42,7 @@ const NAV_GROUPS = [
   {
     group: 'HEALTH',
     items: [
+      { to: '/care-plan', icon: Stethoscope, label: 'Doctor Care Plan' },
       { to: '/medicines', icon: Pill, label: 'Medicines' },
       { to: '/logs', icon: Activity, label: 'Health Logs' },
       { to: '/wearables', icon: Watch, label: 'Wearables' },

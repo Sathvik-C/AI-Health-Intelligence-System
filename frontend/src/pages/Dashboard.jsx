@@ -28,6 +28,8 @@ import {
   Info,
   X,
   Network,
+  Stethoscope,
+  Calendar,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -91,6 +93,7 @@ export default function Dashboard() {
   const [reports, setReports] = useState([])
   const [medicines, setMedicines] = useState([])
   const [manualLogs, setManualLogs] = useState([])
+  const [upcomingTests, setUpcomingTests] = useState([])
 
   useEffect(() => {
     loadDashboardData()
@@ -100,7 +103,7 @@ export default function Dashboard() {
     setLoading(true)
     setAnomalyDismissed(false)
     try {
-      const [namesRes, allBiomarkersRes, riskRes, anomaliesRes, reportsRes, medicinesRes, logsRes] = await Promise.all([
+      const [namesRes, allBiomarkersRes, riskRes, anomaliesRes, reportsRes, medicinesRes, logsRes, testsRes] = await Promise.all([
         api.get('/biomarkers/names').catch(() => ({ data: [] })),
         api.get('/biomarkers/').catch(() => ({ data: [] })),
         api.get('/biomarkers/risk-scores').catch(() => ({ data: null })),
@@ -108,6 +111,7 @@ export default function Dashboard() {
         api.get('/reports/').catch(() => ({ data: [] })),
         api.get('/medicines/').catch(() => ({ data: [] })),
         api.get('/logs/').catch(() => ({ data: [] })),
+        api.get('/consultations/upcoming-tests').catch(() => ({ data: [] })),
       ])
 
       setBiomarkerNames(namesRes.data || [])
@@ -117,6 +121,7 @@ export default function Dashboard() {
       setReports(reportsRes.data || [])
       setMedicines(medicinesRes.data || [])
       setManualLogs(logsRes.data || [])
+      setUpcomingTests(testsRes.data || [])
     } catch (e) {
       console.error('Error loading dashboard data:', e)
     } finally {
@@ -455,6 +460,51 @@ export default function Dashboard() {
           {riskScores && Object.keys(riskScores).length > 0 && (
             <ErrorBoundary name="Risk Score Gauges">
               <RiskScoreGauges riskScores={riskScores} />
+            </ErrorBoundary>
+          )}
+
+          {/* 1E2. UPCOMING DOCTOR-SCHEDULED INVESTIGATIONS */}
+          {upcomingTests && upcomingTests.length > 0 && (
+            <ErrorBoundary name="Upcoming Scheduled Tests">
+              <section className="card p-5 border-l-4 border-sky-500 bg-sky-500/[0.03] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FlaskConical size={16} className="text-sky-400" />
+                    <h3 className="text-sm font-bold text-white">Upcoming Prescribed Investigations</h3>
+                  </div>
+                  <a
+                    href="/care-plan"
+                    className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-medium"
+                  >
+                    <span>View Care Plan</span>
+                    <ArrowRight size={12} />
+                  </a>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {upcomingTests.slice(0, 3).map((t) => (
+                    <div
+                      key={t.id}
+                      className="bg-white/[0.03] border border-white/[0.08] p-3 rounded-xl space-y-1.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-semibold text-xs text-white truncate">{t.test_name}</span>
+                        <span className="text-[10px] font-mono text-sky-400 font-bold px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 shrink-0">
+                          Due {safeFormatDate(t.due_date, 'MMM d')}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stone-400 truncate">
+                        Prescribed by {t.doctor_name || 'Physician'}
+                      </p>
+                      {t.instructions && (
+                        <p className="text-[10px] text-stone-500 line-clamp-1 italic">
+                          "{t.instructions}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
             </ErrorBoundary>
           )}
 

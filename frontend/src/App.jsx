@@ -16,6 +16,7 @@ import AskHealthRecord from './pages/AskHealthRecord'
 import ECGReport from './pages/ECGReport'
 import BiomarkerCorrelations from './pages/BiomarkerCorrelations'
 import WearableOverlay from './pages/WearableOverlay'
+import CarePlan from './pages/CarePlan'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="insights" element={<HealthInsights />} />
           <Route path="correlations" element={<BiomarkerCorrelations />} />
           <Route path="overlay" element={<WearableOverlay />} />
+          <Route path="care-plan" element={<CarePlan />} />
           <Route path="ask" element={<AskHealthRecord />} />
 
           {/* Legacy route compatibility fallbacks */}
