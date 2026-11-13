@@ -39,10 +39,6 @@ import {
   CartesianGrid,
   ReferenceLine,
   ReferenceArea,
-  Legend,
-  RadialBarChart,
-  RadialBar,
-  PolarAngleAxis,
 } from 'recharts'
 import { format } from 'date-fns'
 import SkeletonLoader from '../components/SkeletonLoader'
@@ -456,6 +452,20 @@ export default function Dashboard() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   HELPERS
+   ───────────────────────────────────────────────────────────────────────── */
+function safeFormatDate(dateVal, formatStr = 'MMM d, yy') {
+  if (!dateVal) return ''
+  try {
+    const d = new Date(dateVal)
+    if (isNaN(d.getTime())) return ''
+    return format(d, formatStr)
+  } catch {
+    return ''
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    ANOMALY ALERT BANNER
    ───────────────────────────────────────────────────────────────────────── */
 function AnomalyAlertBanner({ anomalies, onDismiss }) {
@@ -517,7 +527,7 @@ function AnomalyAlertBanner({ anomalies, onDismiss }) {
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-semibold text-white truncate">{a.name}</div>
                 <div className="text-[10px] text-stone-400">
-                  {a.recorded_at ? format(new Date(a.recorded_at), 'MMM d, yyyy') : ''}
+                  {safeFormatDate(a.recorded_at, 'MMM d, yyyy')}
                 </div>
               </div>
               <span
@@ -561,11 +571,14 @@ function getRiskColor(score) {
 
 function RiskGauge({ domain, label, score, factors }) {
   const [expanded, setExpanded] = useState(false)
-  const color = getRiskColor(score)
-  const domainInfo = RISK_DOMAIN_ICONS[domain] || { color: '#6366f1' }
-  const gaugeColor = domainInfo.color !== '#6366f1' ? color : color
-
-  const data = [{ value: score, fill: gaugeColor }]
+  const safeScore = Math.max(0, Math.min(100, Math.round(score || 0)))
+  const color = getRiskColor(safeScore)
+  
+  // Semi-circle SVG arc: radius = 38, center at (50, 48)
+  // Arc length for 180 degrees = Math.PI * 38 = 119.38
+  const radius = 38
+  const circumference = Math.PI * radius
+  const strokeDashoffset = circumference * (1 - safeScore / 100)
 
   return (
     <div
@@ -573,34 +586,33 @@ function RiskGauge({ domain, label, score, factors }) {
       style={{ padding: '16px 12px' }}
       onClick={() => setExpanded(e => !e)}
     >
-      {/* Arc gauge */}
-      <div className="relative w-full" style={{ height: 100 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <RadialBarChart
-            cx="50%"
-            cy="85%"
-            innerRadius="70%"
-            outerRadius="100%"
-            startAngle={180}
-            endAngle={0}
-            data={data}
-            barSize={10}
-          >
-            {/* Background track */}
-            <RadialBar
-              dataKey="value"
-              cornerRadius={6}
-              background={{ fill: 'rgba(255,255,255,0.05)' }}
-              clockWise
-            />
-            <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-          </RadialBarChart>
-        </ResponsiveContainer>
+      <div className="relative w-full flex flex-col items-center justify-center" style={{ height: 90 }}>
+        <svg viewBox="0 0 100 58" className="w-28 h-16 overflow-visible">
+          {/* Background track */}
+          <path
+            d="M 12 50 A 38 38 0 0 1 88 50"
+            fill="none"
+            stroke="rgba(255, 255, 255, 0.07)"
+            strokeWidth="8"
+            strokeLinecap="round"
+          />
+          {/* Active colored arc */}
+          <path
+            d="M 12 50 A 38 38 0 0 1 88 50"
+            fill="none"
+            stroke={color}
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            style={{ transition: 'stroke-dashoffset 0.8s ease-in-out' }}
+          />
+        </svg>
 
         {/* Score in center */}
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-1 pointer-events-none">
-          <span className="text-2xl font-bold font-mono leading-none" style={{ color: gaugeColor }}>
-            {score}
+          <span className="text-2xl font-bold font-mono leading-none" style={{ color }}>
+            {safeScore}
           </span>
           <span className="text-[9px] text-stone-500 mt-0.5">/ 100</span>
         </div>
@@ -739,7 +751,7 @@ function statusMeta(status) {
 
 // Custom animated dot on the line
 function CustomDot({ cx, cy, payload, refMin, refMax, activeIndex, index, dataKey }) {
-  if (cx == null || cy == null) return null
+  if (cx == null || cy == null || !payload || payload[dataKey] == null) return null
   const status = getRangeStatus(payload[dataKey], refMin, refMax)
   const meta   = statusMeta(status)
   const isActive = index === activeIndex
@@ -755,9 +767,13 @@ function CustomDot({ cx, cy, payload, refMin, refMax, activeIndex, index, dataKe
 // Custom tooltip
 function BiomarkerTooltip({ active, payload, label, refMin, refMax, unit }) {
   if (!active || !payload?.length) return null
-  const val    = payload[0]?.value
+  const item   = payload[0]
+  const val    = item?.value ?? item?.payload?.forecastValue
+  const isForecast = item?.dataKey === 'forecastValue' || item?.payload?.forecastValue != null
   const status = getRangeStatus(val, refMin, refMax)
-  const meta   = statusMeta(status)
+  const meta   = isForecast
+    ? { label: 'Projected', color: '#818cf8', bg: 'rgba(129,140,248,0.1)', border: 'rgba(129,140,248,0.3)' }
+    : statusMeta(status)
   return (
     <div style={{ background: '#161a29', border: `1px solid ${meta.border}`, borderRadius: 12, padding: '12px 16px', minWidth: 180 }}>
       <p style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4, fontFamily: 'monospace' }}>{label}</p>
@@ -895,16 +911,24 @@ function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
     )
   }
 
+  // Latest reading & metadata MUST be defined before chartData mapping
+  const latest   = biomarkerHistory[biomarkerHistory.length - 1]
+  const refMin   = latest?.ref_min ?? null
+  const refMax   = latest?.ref_max ?? null
+  const unit     = latest?.unit || ''
+  const status   = latest ? getRangeStatus(latest.value, refMin, refMax) : 'unknown'
+  const meta     = statusMeta(status)
+
   // Chart data — merge historical + forecast
   const historicalChartData = biomarkerHistory.map(h => ({
-    date:     format(new Date(h.recorded_at), 'MMM d, yy'),
+    date:     safeFormatDate(h.recorded_at, 'MMM d, yy'),
     value:    h.value,
     ref_min:  h.ref_min,
     ref_max:  h.ref_max,
   }))
 
   const forecastChartData = forecast?.forecast?.map(f => ({
-    date:          format(new Date(f.date), 'MMM d, yy'),
+    date:          safeFormatDate(f.date, 'MMM d, yy'),
     forecastValue: f.value,
     ref_min:       refMin,
     ref_max:       refMax,
@@ -919,23 +943,20 @@ function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
 
   const chartData = [...bridgedHistorical, ...forecastChartData]
 
-  const latest   = biomarkerHistory[biomarkerHistory.length - 1]
-  const refMin   = latest?.ref_min ?? null
-  const refMax   = latest?.ref_max ?? null
-  const unit     = latest?.unit || ''
-  const status   = latest ? getRangeStatus(latest.value, refMin, refMax) : 'unknown'
-  const meta     = statusMeta(status)
-
   // Trend across full history
   const first    = biomarkerHistory[0]
   const totalDelta = first && latest ? latest.value - first.value : null
   const totalPct   = first && first.value !== 0 ? ((totalDelta / first.value) * 100).toFixed(1) : null
 
-  // y-axis domain with padding — include forecast values too
-  const allVals = chartData.map(d => d.value ?? d.forecastValue).filter(v => v != null)
-  const yPad    = (Math.max(...allVals) - Math.min(...allVals)) * 0.4 || 2
-  const yMin    = Math.min(...allVals, refMin ?? Infinity) - yPad
-  const yMax    = Math.max(...allVals, refMax ?? -Infinity) + yPad
+  // y-axis domain with padding — safe against empty or non-finite values
+  const allVals = chartData.map(d => d.value ?? d.forecastValue).filter(v => v != null && !isNaN(v))
+  const minVal  = allVals.length > 0 ? Math.min(...allVals) : 0
+  const maxVal  = allVals.length > 0 ? Math.max(...allVals) : 100
+  const yPad    = (maxVal - minVal) * 0.4 || 2
+  const calcMin = Math.min(minVal, refMin ?? Infinity) - yPad
+  const calcMax = Math.max(maxVal, refMax ?? -Infinity) + yPad
+  const yMin    = Number.isFinite(calcMin) ? Math.max(0, calcMin) : 0
+  const yMax    = Number.isFinite(calcMax) ? calcMax : 100
 
   // History for all biomarkers (for the grid)
   const allHistories = {}
@@ -1216,7 +1237,7 @@ function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
                     <div key={h.id} className="flex items-center justify-between gap-4 text-xs py-1.5 border-b border-white/[0.05] last:border-0">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color }} />
-                        <span className="text-stone-400 font-mono">{format(new Date(h.recorded_at), 'MMM d, yyyy')}</span>
+                        <span className="text-stone-400 font-mono">{safeFormatDate(h.recorded_at, 'MMM d, yyyy')}</span>
                         {isLatest && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-brand-500/15 text-brand-400 border border-brand-500/20 font-semibold">Latest</span>}
                       </div>
                       <div className="flex items-center gap-3">
@@ -1238,8 +1259,8 @@ function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
               <p className="text-xs leading-relaxed" style={{ color: meta.color }}>
                 <span className="font-bold">{selectedBiomarker}</span> has been tracked across {' '}
                 <span className="font-bold">{biomarkerHistory.length} reports</span> from {' '}
-                <span className="font-bold">{format(new Date(biomarkerHistory[0].recorded_at), 'MMM d, yyyy')}</span> to {' '}
-                <span className="font-bold">{format(new Date(biomarkerHistory[biomarkerHistory.length - 1].recorded_at), 'MMM d, yyyy')}</span>.
+                <span className="font-bold">{safeFormatDate(biomarkerHistory[0].recorded_at, 'MMM d, yyyy')}</span> to {' '}
+                <span className="font-bold">{safeFormatDate(biomarkerHistory[biomarkerHistory.length - 1].recorded_at, 'MMM d, yyyy')}</span>.
                 {totalDelta !== null && Math.abs(totalDelta) > 0 && (
                   <> Overall it has {totalDelta > 0 ? 'increased' : 'decreased'} by{' '}
                   <span className="font-bold">{Math.abs(totalDelta).toFixed(1)} {unit}</span>
