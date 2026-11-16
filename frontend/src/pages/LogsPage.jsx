@@ -9,12 +9,9 @@ const LOG_TYPES = [
   { value: 'blood_pressure', label: 'Blood Pressure', unit: 'mmHg', hasSecond: true, placeholder: 'Systolic', placeholder2: 'Diastolic' },
   { value: 'weight', label: 'Weight', unit: 'kg' },
   { value: 'pulse', label: 'Pulse Rate', unit: 'bpm' },
-  { value: 'spo2', label: 'Oxygen Saturation', unit: '%' },
-  { value: 'temperature', label: 'Body Temp', unit: '°F' },
-  { value: 'sleep', label: 'Sleep Duration', unit: 'hrs' },
-  { value: 'steps', label: 'Daily Steps', unit: 'steps' },
-  { value: 'water', label: 'Water Intake', unit: 'L' },
 ]
+// Only these four feed the app's analysis (heart-risk calculator, BMI, AI Insights).
+// Sleep and steps come from Wearables. Older entries of other types still appear under "All".
 
 export default function LogsPage() {
   const [logs, setLogs] = useState([])
@@ -94,7 +91,7 @@ export default function LogsPage() {
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Health Logs</h1>
           <p className="text-sm text-stone-400 mt-1">
-            Chronological personal health journal of self-measured vitals and daily observations.
+            Home readings of blood pressure, glucose, weight and pulse — used by your heart-risk check, BMI and AI Insights.
           </p>
         </div>
       </div>
@@ -195,7 +192,7 @@ export default function LogsPage() {
         <EmptyState
           icon={Activity}
           title="No log entries recorded yet"
-          description="Log fasting glucose, blood pressure, weight, or other vital metrics above."
+          description="Log fasting glucose, blood pressure, weight or pulse above."
         />
       ) : (
         <div className="space-y-3">

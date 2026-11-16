@@ -16,6 +16,10 @@ from app.routers import (
     xray,
     ecg,
     consultations,
+    profile,
+    precision,
+    ai_insights,
+    rag,
 )
 Base.metadata.create_all(bind=engine)
 
@@ -47,6 +51,10 @@ app.include_router(wearable.router, prefix="/wearable", tags=["wearable"])
 app.include_router(xray.router, prefix="/xray", tags=["xray"])
 app.include_router(ecg.router, prefix="/ecg", tags=["ecg"])
 app.include_router(consultations.router, prefix="/consultations", tags=["consultations"])
+app.include_router(profile.router, prefix="/profile", tags=["profile"])
+app.include_router(precision.router, prefix="/precision", tags=["precision-medicine"])
+app.include_router(ai_insights.router, prefix="/ai-insights", tags=["ai-insights"])
+app.include_router(rag.router, prefix="/rag", tags=["rag"])
 
 @app.get("/")
 def root():

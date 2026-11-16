@@ -53,6 +53,7 @@ Copy `.env.example` to `.env` and fill in:
 | Variable | Description |
 |---|---|
 | `GEMINI_API_KEY` | Your Gemini API key (required) |
+| `GEMINI_MODEL` | Model for the AI Insights tab (default `gemini-3.6-flash`) |
 | `SECRET_KEY` | JWT signing secret (change in prod!) |
 | `DATABASE_URL` | PostgreSQL connection string (defaults to local SQLite if unset) |
 | `UPLOAD_DIR` | Directory for PDF uploads |
@@ -96,6 +97,13 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 API docs available at: http://localhost:8000/docs
+
+Run the backend tests:
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest -q tests
+```
 
 ### Frontend
 
@@ -145,7 +153,7 @@ under CC BY 4.0.
 | 📄 PDF Report Upload | Upload lab PDFs, extract biomarkers via Gemini 2.5 Flash |
 | 📊 Biomarker Dashboard | Time-series charts with reference bands and trend arrows |
 | 🔮 Forecasting | Linear regression predicts next 3 data points |
-| ⚠️ Risk Scoring | 7 comprehensive risk gauges: Diabetes, Cardio, Kidney, Liver, Thyroid, Anemia, Inflammation (0–100) |
+| ⚠️ Risk Scoring | 7 rule-based risk gauges: Diabetes, Cardio, Kidney, Liver, Thyroid, Anemia, Inflammation (0–100 threshold points) |
 | 🚨 Anomaly Detection | Z-score based detection with alert badges |
 | 💬 AI Chatbot | AI chatbot using Google Gemini |
 | 🩺 Doctor Mode | Structured clinical data view for professionals |
@@ -153,8 +161,31 @@ under CC BY 4.0.
 | 📝 Health Summary | AI-generated summary of all biomarker trends |
 | 🫀 ECG Analysis | Analyze ECG images with the downloadable ConvNeXt-Tiny model |
 | 🔐 Auth | JWT-based authentication with user isolation |
+| 🗂 Dashboard tabs | **Clinical Dashboard** (Python analytics) and **AI Insights & Precision Medicine** (`/dashboard?tab=ai`) |
+| ✨ AI Health Insights | Gemini insights grounded in numbered facts; each insight cites its evidence; rule-based fallback |
+| 🧬 Precision Medicine | eGFR (CKD-EPI 2021), FIB-4, 10-yr ASCVD (PCE), IDRS, Asian BMI cut-offs, metabolic syndrome, CPIC pharmacogenomics, drug–lab checks, personal monitoring plan |
 
 ---
+
+See `docs/AI_INSIGHTS_AND_PRECISION_MEDICINE.md` for how the AI tab works and `REVIEW.md` for the code review.
+
+---
+
+## 🔎 Ask Your Health Record — cited answers (RAG)
+
+Answers come from a free, public reference library (openFDA drug labels, CPIC gene–drug guidelines,
+MedlinePlus summaries) plus the facts the app computed from your own records. Every sentence shows numbered
+sources; a validator removes sentences their sources don't support. Search uses a free local model
+(BAAI/bge-small-en-v1.5) and vectors are stored in PostgreSQL with **pgvector** (numpy fallback on SQLite).
+Each question makes one Gemini call (the answer); everything else runs in Python.
+
+```bash
+docker-compose exec backend python -m app.rag.ingest fetch            # download public documents
+docker-compose exec backend python -m app.rag.ingest build --dry-run  # exact size + free-tier estimate
+docker-compose exec backend python -m app.rag.ingest build            # embed locally + store
+```
+Details, licences, costs and evaluation: [docs/RAG.md](docs/RAG.md).
+Where Gemini is still used and what plain Python replaced: [docs/GEMINI_USAGE.md](docs/GEMINI_USAGE.md).
 
 ## 🔒 Security Notes
 

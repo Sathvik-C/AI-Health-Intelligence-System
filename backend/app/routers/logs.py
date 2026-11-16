@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional
+from typing import Literal, Optional
 from datetime import datetime
 from app.database import get_db
 from app.models.models import ManualLog, User
@@ -10,8 +10,12 @@ from app.utils.auth import get_current_user
 router = APIRouter()
 
 
+# Only the types the analysis uses (heart-risk calculator, BMI, AI Insights). Sleep/steps come from Wearables.
+LogType = Literal["blood_pressure", "glucose", "weight", "pulse"]
+
+
 class LogCreate(BaseModel):
-    log_type: str  # blood_pressure, glucose, weight, pulse
+    log_type: LogType
     value: float
     value2: Optional[float] = None
     unit: Optional[str] = None

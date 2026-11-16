@@ -189,7 +189,13 @@ def _llm_summary_is_safe(text: str) -> bool:
 
 
 def _llm_summary(observations: list):
-    """Returns LLM text, or None if unavailable/unsafe (caller falls back to template)."""
+    """Returns LLM text, or None if unavailable/unsafe (caller falls back to template).
+
+    Off by default: the built-in template states the same classifier results without a Gemini call.
+    Set ECG_LLM_SUMMARY=1 to let Gemini rephrase them.
+    """
+    if os.getenv("ECG_LLM_SUMMARY", "0") != "1":
+        return None
     if not os.getenv("GEMINI_API_KEY"):
         print("[ECG summary] GEMINI_API_KEY not set, using template")
         return None

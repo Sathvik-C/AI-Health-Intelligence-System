@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Date, JSON
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Date, JSON, LargeBinary
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -159,6 +159,41 @@ class PrescriptionChange(Base):
     consultation = relationship("Consultation", back_populates="prescriptions")
 
 
+class PatientProfile(Base):
+    """Personal context used by the Precision Medicine tab (one row per user)."""
+    __tablename__ = "patient_profiles"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+
+    date_of_birth = Column(Date, nullable=True)
+    sex = Column(String, nullable=True)                 # male | female
+    height_cm = Column(Float, nullable=True)
+    weight_kg = Column(Float, nullable=True)
+    waist_cm = Column(Float, nullable=True)
+    ancestry = Column(String, nullable=True)            # south_asian | east_asian | african | european | hispanic | middle_eastern | other
+    smoking_status = Column(String, nullable=True)      # never | former | current
+    alcohol_use = Column(String, nullable=True)         # none | occasional | regular
+    physical_activity = Column(String, nullable=True)   # vigorous | moderate | mild | sedentary
+    parents_with_diabetes = Column(Integer, nullable=True)        # 0 | 1 | 2
+    family_history_premature_ascvd = Column(Boolean, nullable=True)
+    known_conditions = Column(JSON, nullable=True)      # list[str], e.g. ["type2_diabetes", "hypertension"]
+    on_bp_treatment = Column(Boolean, nullable=True)    # None = infer from medicines
+    pgx_results = Column(JSON, nullable=True)           # {"CYP2C19": "poor_metabolizer", "HLA-B*15:02": "positive", ...}
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class AIInsightCache(Base):
+    """Last generated AI insight payload per user; regenerated when the health data fingerprint changes."""
+    __tablename__ = "ai_insight_cache"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    fingerprint = Column(String, nullable=False)
+    source = Column(String, nullable=False)             # gemini | rule_based
+    model = Column(String, nullable=True)
+    payload = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class ScheduledTest(Base):
     __tablename__ = "scheduled_tests"
     id = Column(Integer, primary_key=True, index=True)
@@ -174,3 +209,29 @@ class ScheduledTest(Base):
 
     consultation = relationship("Consultation", back_populates="scheduled_tests")
 
+
+
+class KBChunk(Base):
+    """One passage of the public knowledge base (FDA labels, CPIC, MedlinePlus) used for RAG.
+
+    `embedding` holds float32 bytes so the table works on SQLite and plain Postgres (numpy search).
+    When the pgvector extension is available, app/rag/store.py adds an `embedding_vec vector(N)` column
+    plus an HNSW index and searches inside Postgres instead.
+    """
+    __tablename__ = "kb_chunks"
+    id = Column(String(255), primary_key=True)            # e.g. openfda:metformin:contraindications#0
+    source = Column(String(30), nullable=False, index=True)
+    doc_id = Column(String(255), nullable=False, index=True)
+    title = Column(String(400), nullable=False)
+    section = Column(String(200), nullable=True)
+    url = Column(String(600), nullable=True)
+    text = Column(Text, nullable=False)
+    tags = Column(JSON, nullable=True)
+    tag_index = Column(String(2000), nullable=True, index=False)   # |drug:metformin|gene:cyp2c19|
+    licence = Column(String(120), nullable=True)
+    version = Column(String(120), nullable=True)
+    content_hash = Column(String(64), nullable=False, index=True)
+    embed_model = Column(String(80), nullable=True)
+    embedding = Column(LargeBinary, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SYNTHETIC TEST FIXTURE shaped like MedlinePlus mplus_topics_YYYY-MM-DD.xml. Not real MedlinePlus text. -->
+<health-topics total="4" date-generated="11/14/2026">
+<health-topic title="Diabetes" url="https://medlineplus.gov/diabetes.html" id="1" language="English" date-created="01/01/2001" meta-desc="x">
+<also-called>Diabetes mellitus</also-called>
+<full-summary>&lt;p&gt;Synthetic summary: diabetes is a disease in which your blood glucose, or blood sugar, levels are too high.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;An A1C test shows average blood sugar over three months.&lt;/li&gt;&lt;li&gt;Metformin is a commonly used medicine.&lt;/li&gt;&lt;/ul&gt;</full-summary>
+<group url="https://medlineplus.gov/endocrinesystem.html" id="1">Endocrine System</group>
+<mesh-heading><descriptor id="D003920">Diabetes Mellitus</descriptor></mesh-heading>
+</health-topic>
+<health-topic title="Diabetes" url="https://medlineplus.gov/spanish/diabetes.html" id="2" language="Spanish" date-created="01/01/2001" meta-desc="x">
+<full-summary>&lt;p&gt;Resumen sint&#233;tico sobre la diabetes y el az&#250;car en la sangre, suficientemente largo.&lt;/p&gt;</full-summary>
+</health-topic>
+<health-topic title="Sunburn" url="https://medlineplus.gov/sunburn.html" id="3" language="English" date-created="01/01/2001" meta-desc="x">
+<full-summary>&lt;p&gt;Synthetic summary about sunburn that should be filtered out by the keyword list because it is unrelated.&lt;/p&gt;</full-summary>
+</health-topic>
+<health-topic title="Chronic Kidney Disease" url="https://medlineplus.gov/chronickidneydisease.html" id="4" language="English" date-created="01/01/2001" meta-desc="x">
+<also-called>CKD</also-called>
+<full-summary><p>Synthetic summary with real child elements: chronic kidney disease means your kidneys are damaged.</p><ul><li>An eGFR test checks kidney function.</li><li>Control blood pressure.</li></ul></full-summary>
+</health-topic>
+</health-topics>

@@ -8,7 +8,11 @@ from app.database import get_db
 from app.models.models import Report, Biomarker, User
 from app.utils.auth import get_current_user
 from app.services.pdf_service import extract_text_from_pdf
-from app.ai.gemini_service import extract_biomarkers_from_text
+from app.services.report_parser import parse_lab_report, read_pdf
+
+# Lab PDFs are read with plain Python first (app/services/report_parser.py). Gemini is used only when Python
+# finds fewer than this many values (unusual layouts) or for photos/scans, which need an AI or OCR reader.
+MIN_PYTHON_ROWS = int(os.getenv("REPORT_MIN_PYTHON_ROWS", "3"))
 
 router = APIRouter()
 
@@ -31,9 +35,12 @@ async def upload_report(
         f.write(await file.read())
 
     is_pdf = file.filename.lower().endswith(".pdf")
-    extracted_text = ""
+    extracted_text, pdf_tables = "", []
     if is_pdf:
-        extracted_text = extract_text_from_pdf(file_path)
+        try:
+            extracted_text, pdf_tables = read_pdf(file_path)
+        except Exception:
+            extracted_text = extract_text_from_pdf(file_path)
 
     report = Report(
         user_id=current_user.id,
@@ -46,13 +53,26 @@ async def upload_report(
     db.commit()
     db.refresh(report)
 
-    # Extract biomarkers via Gemini
+    # Extract biomarkers: Python first, Gemini only as a fallback
+    method = "none"
     try:
+        extracted_data = {"report_date": "", "biomarkers": []}
         if is_pdf:
-            extracted_data = await extract_biomarkers_from_text(extracted_text)
+            parsed = parse_lab_report(extracted_text, pdf_tables)
+            extracted_data, method = parsed, parsed["method"]
+            if len(parsed["biomarkers"]) < MIN_PYTHON_ROWS and os.getenv("GEMINI_API_KEY"):
+                try:
+                    from app.ai.gemini_service import extract_biomarkers_from_text
+                    ai = await extract_biomarkers_from_text(extracted_text)
+                    if len(ai.get("biomarkers", [])) > len(parsed["biomarkers"]):
+                        extracted_data, method = ai, "gemini-fallback"
+                except Exception as e:
+                    print(f"⚠️ Gemini fallback failed, keeping Python result: {type(e).__name__}: {e}")
         else:
             from app.ai.gemini_service import extract_biomarkers_from_file
             extracted_data = await extract_biomarkers_from_file(file_path)
+            method = "gemini-image"
+        print(f"📄 {file.filename}: {len(extracted_data.get('biomarkers', []))} values via {method}")
         
         actual_report_date = report.report_date
         report_date_str = extracted_data.get("report_date")
@@ -85,7 +105,9 @@ async def upload_report(
     except Exception as e:
         print(f"❌ Biomarker extraction failed: {type(e).__name__}: {e}")
 
-    return {"report_id": report.id, "filename": file.filename, "biomarkers_extracted": len(biomarkers_data) if 'biomarkers_data' in locals() else 0}
+    return {"report_id": report.id, "filename": file.filename,
+            "biomarkers_extracted": len(biomarkers_data) if 'biomarkers_data' in locals() else 0,
+            "extraction_method": method}
 
 
 @router.get("/")

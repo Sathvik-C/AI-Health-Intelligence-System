@@ -26,6 +26,8 @@ build/
 .pnp.*
 
 # Project Specific
+*.zip
+backend.zip
 sample_reports/
 uploads/
 chroma_db/
@@ -42,3 +44,8 @@ health_db.db
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# RAG knowledge-base downloads and evaluation reports (re-creatable with python -m app.rag.ingest)
+backend/data/kb/
+# Local embedding model cache (downloaded automatically on first use)
+backend/data/models/

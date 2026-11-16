@@ -9,25 +9,29 @@ import {
   User,
   Sparkles,
   HelpCircle,
-  FileText
+  FileText,
+  Library,
+  AlertTriangle
 } from 'lucide-react'
+import CitedAnswer from '../components/chat/CitedAnswer'
 
 const SUGGESTED_QUESTIONS = [
-  "What changed in my latest report?",
   "Explain my HbA1c history.",
-  "Show me my health history.",
-  "What reports do I have?",
-  "Explain this result.",
   "What medications are currently recorded?",
+  "Do any of my medicines have gene–drug warnings?",
+  "Is metformin safe with kidney disease?",
+  "What does CPIC say about clopidogrel for CYP2C19 poor metabolizers?",
+  "What is chronic kidney disease?",
 ]
 
 export default function AskHealthRecord() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Welcome to Ask Your Health Record. You can query your indexed health reports, biomarker history, and medication records in simple language.\n\n⚠️ Answers are derived from your recorded history for informational purposes."
+      content: "Ask about your reports, trends and medicines. Every answer cites where it came from — your own records, FDA drug labels, CPIC gene–drug guidelines or MedlinePlus — and statements that a source doesn't support are removed.\n\n⚠️ Educational information only, not medical advice."
     }
   ])
+  const [kb, setKb] = useState(null)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [doctorMode, setDoctorMode] = useState(false)
@@ -36,6 +40,10 @@ export default function AskHealthRecord() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
+
+  useEffect(() => {
+    api.get('/rag/status').then(r => setKb(r.data)).catch(() => setKb(null))
+  }, [])
 
   const handleSend = async (textToSubmit) => {
     const q = textToSubmit || input.trim()
@@ -51,7 +59,7 @@ export default function AskHealthRecord() {
         doctor_mode: doctorMode
       })
 
-      setMessages(prev => [...prev, { role: 'assistant', content: res.data.answer }])
+      setMessages(prev => [...prev, { role: 'assistant', content: res.data.answer, rag: res.data.status ? res.data : null }])
     } catch (e) {
       setMessages(prev => [
         ...prev,
@@ -66,7 +74,7 @@ export default function AskHealthRecord() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-5xl mx-auto h-[calc(100vh-2rem)] flex flex-col">
+    <div className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 max-w-5xl mx-auto h-[calc(100vh-2rem)] flex flex-col">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.07] pb-4 shrink-0">
         <div>
@@ -75,8 +83,19 @@ export default function AskHealthRecord() {
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Ask Your Health Record</h1>
           <p className="text-xs text-stone-400 mt-0.5">
-            Query your indexed laboratory reports, longitudinal biomarker trends, and medical records.
+            Answers grounded in your records and trusted medical references, with sources you can open.
           </p>
+          {kb && (kb.ready ? (
+            <div className="mt-1.5 inline-flex items-center gap-1.5 text-[10px] text-stone-400">
+              <Library size={11} className="text-brand-400" />
+              Reference library: {kb.embedded.toLocaleString()} passages · FDA labels · CPIC · MedlinePlus
+            </div>
+          ) : (
+            <div className="mt-1.5 inline-flex items-center gap-1.5 text-[10px] text-amber-400">
+              <AlertTriangle size={11} />
+              Reference library not built yet — answers can only use your own records.
+            </div>
+          ))}
         </div>
 
         <button
@@ -91,15 +110,15 @@ export default function AskHealthRecord() {
         </button>
       </div>
 
-      {/* Suggested Questions Chips */}
-      <div className="shrink-0 space-y-2">
+      {/* Suggested Questions Chips — one swipeable row on phones, hidden on phones once a chat has started */}
+      <div className={`shrink-0 space-y-2 ${messages.length > 1 ? 'hidden sm:block' : ''}`}>
         <span className="text-[11px] font-mono text-stone-400 uppercase tracking-wider font-semibold">Suggested Questions:</span>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-nowrap sm:flex-wrap gap-2 overflow-x-auto pb-1 sm:pb-0 -mx-1 px-1">
           {SUGGESTED_QUESTIONS.map(q => (
             <button
               key={q}
               onClick={() => handleSend(q)}
-              className="text-xs text-stone-300 bg-white/[0.03] border border-white/[0.08] hover:border-brand-500/40 hover:text-white rounded-lg px-3 py-1.5 transition-all text-left"
+              className="text-xs text-stone-300 bg-white/[0.03] border border-white/[0.08] hover:border-brand-500/40 hover:text-white rounded-lg px-3 py-1.5 transition-all text-left whitespace-nowrap sm:whitespace-normal shrink-0"
             >
               {q}
             </button>
@@ -108,7 +127,7 @@ export default function AskHealthRecord() {
       </div>
 
       {/* Conversation Thread Window */}
-      <div className="card flex-1 overflow-y-auto p-5 space-y-5 bg-[#0e1018] border-white/[0.08]">
+      <div className="card flex-1 min-h-[16rem] overflow-y-auto p-3 sm:p-5 space-y-5 bg-[#0e1018] border-white/[0.08]">
         {messages.map((m, idx) => (
           <div
             key={idx}
@@ -121,13 +140,13 @@ export default function AskHealthRecord() {
             )}
 
             <div
-              className={`max-w-[82%] rounded-2xl p-4 text-xs leading-relaxed whitespace-pre-wrap ${
+              className={`max-w-[88%] sm:max-w-[82%] rounded-2xl p-3 sm:p-4 text-xs leading-relaxed whitespace-pre-wrap ${
                 m.role === 'user'
                   ? 'bg-brand-500 text-white font-medium rounded-tr-none shadow-glow-brand'
                   : 'bg-white/[0.04] text-stone-100 border border-white/[0.07] rounded-tl-none'
               }`}
             >
-              {m.content}
+              {m.rag ? <CitedAnswer data={m.rag} /> : m.content}
             </div>
 
             {m.role === 'user' && (
@@ -145,7 +164,7 @@ export default function AskHealthRecord() {
             </div>
             <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl rounded-tl-none p-4 flex items-center gap-2 text-xs text-stone-400">
               <Loader size={14} className="animate-spin text-brand-400" />
-              <span>Searching health history records...</span>
+              <span>Searching your records and medical references…</span>
             </div>
           </div>
         )}

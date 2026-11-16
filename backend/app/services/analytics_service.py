@@ -57,23 +57,34 @@ def forecast_biomarker(biomarkers: list) -> dict:
 
 
 def compute_risk_scores(biomarkers: list) -> dict:
-    """Compute diabetes risk score and cardiovascular risk score."""
-    # Get latest value for each biomarker name
+    """Rule-based (threshold) risk scores across 7 domains.
+
+    Lookups go through the canonical biomarker catalog. The previous substring
+    lookup matched "ast" inside "Fasting Glucose" and "hemoglobin" inside
+    "Glycated Hemoglobin (HbA1c)", so the wrong lab value fed some scores.
+    """
+    from app.services.biomarker_catalog import canonical_key, to_canonical
+
+    # Latest reading per canonical marker
     latest = {}
     for b in biomarkers:
-        if b.name not in latest or b.recorded_at > latest[b.name].recorded_at:
-            latest[b.name] = b
+        key = canonical_key(b.name)
+        if key is None or b.value is None:
+            continue
+        if key not in latest or b.recorded_at > latest[key].recorded_at:
+            latest[key] = b
 
-    def get_val(names):
-        for n in names:
-            for key in latest:
-                if n.lower() in key.lower():
-                    return latest[key].value
+    def get_val(keys):
+        for key in keys:
+            b = latest.get(key)
+            if b is not None:
+                converted, _problem = to_canonical(key, b.value, b.unit)
+                return converted if converted is not None else b.value
         return None
 
     # Diabetes Risk
-    hba1c = get_val(["hba1c", "hemoglobin a1c"])
-    fasting_glucose = get_val(["fasting glucose", "glucose"])
+    hba1c = get_val(["hba1c"])
+    fasting_glucose = get_val(["fasting_glucose", "glucose"])
 
     diabetes_score = 0
     diabetes_factors = []
@@ -102,8 +113,8 @@ def compute_risk_scores(biomarkers: list) -> dict:
     # Cardio Risk
     ldl = get_val(["ldl"])
     hdl = get_val(["hdl"])
-    triglycerides = get_val(["triglyceride"])
-    bp_systolic = get_val(["systolic", "blood pressure"])
+    triglycerides = get_val(["triglycerides"])
+    bp_systolic = get_val(["sbp"])
 
     cardio_score = 0
     cardio_factors = []
@@ -128,9 +139,9 @@ def compute_risk_scores(biomarkers: list) -> dict:
 
     # Kidney Risk
     creatinine = get_val(["creatinine"])
-    egfr = get_val(["egfr", "glomerular filtration"])
-    bun = get_val(["bun", "blood urea nitrogen"])
-    uric_acid = get_val(["uric acid"])
+    egfr = get_val(["egfr"])
+    bun = get_val(["bun"])
+    uric_acid = get_val(["uric_acid"])
 
     kidney_score = 0
     kidney_factors = []
@@ -149,10 +160,10 @@ def compute_risk_scores(biomarkers: list) -> dict:
     kidney_score = min(kidney_score, 100)
 
     # Liver Risk
-    alt = get_val(["alt", "sgpt"])
-    ast = get_val(["ast", "sgot"])
-    alp = get_val(["alp", "alkaline phosphatase"])
-    bilirubin = get_val(["bilirubin"])
+    alt = get_val(["alt"])
+    ast = get_val(["ast"])
+    alp = get_val(["alp"])
+    bilirubin = get_val(["bilirubin_total"])
     
     liver_score = 0
     liver_factors = []
@@ -171,8 +182,8 @@ def compute_risk_scores(biomarkers: list) -> dict:
     liver_score = min(liver_score, 100)
 
     # Thyroid Risk
-    tsh = get_val(["tsh", "thyroid stimulating hormone"])
-    t4 = get_val(["free t4", "t4"])
+    tsh = get_val(["tsh"])
+    t4 = get_val(["free_t4"])
     
     thyroid_score = 0
     thyroid_factors = []
@@ -187,7 +198,7 @@ def compute_risk_scores(biomarkers: list) -> dict:
     thyroid_score = min(thyroid_score, 100)
 
     # Anemia Risk
-    hemoglobin = get_val(["hemoglobin", "hgb"])
+    hemoglobin = get_val(["hemoglobin"])
     ferritin = get_val(["ferritin"])
     mcv = get_val(["mcv"])
     
@@ -208,8 +219,8 @@ def compute_risk_scores(biomarkers: list) -> dict:
     anemia_score = min(anemia_score, 100)
 
     # Inflammation Risk
-    crp = get_val(["crp", "c-reactive protein"])
-    wbc = get_val(["wbc", "white blood cell"])
+    crp = get_val(["crp"])
+    wbc = get_val(["wbc"])
     
     inflammation_score = 0
     inflammation_factors = []

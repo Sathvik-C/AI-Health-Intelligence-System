@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import api from '../utils/api'
+import AIPrecisionTab from './AIPrecisionTab'
 import {
   TrendingUp,
   TrendingDown,
@@ -30,6 +32,8 @@ import {
   Network,
   Stethoscope,
   Calendar,
+  LayoutDashboard,
+  Dna,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -83,7 +87,47 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const TABS = [
+  { id: 'clinical', label: 'Clinical', long: 'Your lab results, trends and risk scores at a glance.', icon: LayoutDashboard },
+  { id: 'ai', label: 'AI Insights & Precision', long: 'Plain-language insights and health checks personalised to you.', icon: Dna },
+]
+
 export default function Dashboard() {
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('tab') === 'ai' ? 'ai' : 'clinical'
+  const current = TABS.find(t => t.id === tab)
+  return (
+    <div className="p-4 md:p-7 space-y-4">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Health Dashboard</h1>
+          <p className="text-xs text-stone-400 mt-0.5">{current.long}</p>
+        </div>
+        <div role="tablist" aria-label="Dashboard views" className="flex w-full md:w-auto p-1 rounded-xl border border-white/[0.08] bg-white/[0.03]">
+          {TABS.map(({ id, label, icon: Icon }) => {
+            const active = tab === id
+            return (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setParams(id === 'clinical' ? {} : { tab: id })}
+                className={`flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                  active ? 'bg-brand-500 text-white shadow-sm' : 'text-stone-400 hover:text-stone-100 hover:bg-white/[0.05]'
+                }`}
+              >
+                <Icon size={14} /> {label}
+              </button>
+            )
+          })}
+        </div>
+      </header>
+      {tab === 'ai' ? <AIPrecisionTab /> : <ClinicalDashboard />}
+    </div>
+  )
+}
+
+function ClinicalDashboard() {
   const [loading, setLoading] = useState(true)
   const [biomarkerNames, setBiomarkerNames] = useState([])
   const [allBiomarkers, setAllBiomarkers] = useState([])
@@ -171,405 +215,228 @@ export default function Dashboard() {
     }
   }).filter(Boolean)
 
-  // Construct Health Story observations
-  const observations = []
-  const changedItems = biomarkerChanges.filter(c => c.previous && c.status !== 'stable')
+  // ── Numbers for the summary strip (all computed from the data, nothing hard-coded) ──
   const totalBiomarkers = biomarkerNames.length
+  const isOut = (b) => (b.ref_max != null && b.value > b.ref_max) || (b.ref_min != null && b.value < b.ref_min)
+  const withRange = biomarkerChanges.filter(c => c.latest.ref_min != null || c.latest.ref_max != null)
+  const outOfRange = withRange.filter(c => isOut(c.latest))
+  const inRangeNow = withRange.length - outOfRange.length
+  const changed = biomarkerChanges.filter(c => c.previous && c.status !== 'stable')
+  // Out-of-range first, then the biggest % movers, so what matters is visible without scrolling
+  const movers = changed
+    .map(c => ({
+      ...c,
+      out: isOut(c.latest),
+      pct: c.previous.value ? ((c.latest.value - c.previous.value) / Math.abs(c.previous.value)) * 100 : 0,
+    }))
+    .sort((a, b) => (b.out - a.out) || Math.abs(b.pct) - Math.abs(a.pct))
+  const latestReport = reports[0]
 
-  if (changedItems.length > 0) {
-    observations.push({
-      text: `${changedItems.length} biomarker${changedItems.length > 1 ? 's' : ''} changed compared with your previous available report.`,
-      highlight: true
-    })
-  }
-  if (reports.length > 0) {
-    const latestReport = reports[0]
-    observations.push({
-      text: `Latest laboratory report uploaded on ${safeFormatDate(latestReport.uploaded_at, 'MMM d, yyyy')} with ${latestReport.biomarker_count || 'several'} extracted markers.`,
-      highlight: false
-    })
-  }
-  if (biomarkerChanges.filter(c => c.status === 'stable').length > 0) {
-    observations.push({
-      text: `Some health areas have remained stable across your available records.`,
-      highlight: false
-    })
-  }
-
-  // Construct Health Timeline
-  const timelineEvents = []
-
-  reports.forEach(r => {
-    timelineEvents.push({
-      type: 'LAB REPORT',
-      icon: FileText,
-      title: r.filename,
-      subtitle: `${r.biomarker_count || 'Multiple'} biomarkers extracted`,
-      date: new Date(r.uploaded_at),
-      badgeColor: 'border-sky-500/30 text-sky-400 bg-sky-500/10'
-    })
-  })
-
-  medicines.forEach(m => {
-    timelineEvents.push({
-      type: 'MEDICINE',
-      icon: Pill,
-      title: m.drug_name,
-      subtitle: m.dosage ? `Dose: ${m.dosage}` : 'Medication recorded',
-      date: new Date(m.start_date),
-      badgeColor: 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
-    })
-  })
-
-  manualLogs.forEach(l => {
-    timelineEvents.push({
-      type: 'HEALTH LOG',
-      icon: Activity,
-      title: l.log_type.replace('_', ' ').toUpperCase(),
-      subtitle: `Logged value: ${l.value}${l.unit ? ' ' + l.unit : ''}`,
-      date: new Date(l.logged_at),
-      badgeColor: 'border-amber-500/30 text-amber-400 bg-amber-500/10'
-    })
-  })
-
-  timelineEvents.sort((a, b) => b.date - a.date)
-
-  // Construct Important Health Areas
-  const healthAreas = [
-    {
-      key: 'blood_sugar',
-      title: 'BLOOD SUGAR',
-      description: biomarkerChanges.some(c => c.name.toLowerCase().includes('hba1c') || c.name.toLowerCase().includes('glucose'))
-        ? 'Recent glucose-related biomarkers present in your history.'
-        : 'Glucose markers monitored.',
-      status: riskScores?.diabetes?.score > 50 ? 'Attention' : 'Stable',
-      statusClass: riskScores?.diabetes?.score > 50 ? 'risk-yellow' : 'risk-green'
-    },
-    {
-      key: 'cardiovascular',
-      title: 'CARDIOVASCULAR',
-      description: biomarkerChanges.some(c => c.name.toLowerCase().includes('cholesterol') || c.name.toLowerCase().includes('triglycerides'))
-        ? 'Cardiovascular markers recorded in available reports.'
-        : 'Lipid profile indicators recorded.',
-      status: riskScores?.cardiovascular?.score > 60 ? 'Attention' : 'Stable',
-      statusClass: riskScores?.cardiovascular?.score > 60 ? 'risk-yellow' : 'risk-green'
-    },
-    {
-      key: 'kidney',
-      title: 'KIDNEY',
-      description: biomarkerChanges.some(c => c.name.toLowerCase().includes('creatinine') || c.name.toLowerCase().includes('egfr'))
-        ? 'Renal function indicators present in history.'
-        : 'Renal panel markers monitored.',
-      status: riskScores?.kidney?.score > 60 ? 'Attention' : 'Stable',
-      statusClass: riskScores?.kidney?.score > 60 ? 'risk-yellow' : 'risk-green'
-    },
-    {
-      key: 'liver',
-      title: 'LIVER',
-      description: 'Hepatic enzymes and protein markers stable across reports.',
-      status: 'Stable',
-      statusClass: 'risk-green'
-    }
-  ]
+  // ── Recent activity (reports, medicines, logs) ──
+  const timelineEvents = [
+    ...reports.map(r => ({ type: 'Lab report', icon: FileText, title: prettyReportName(r.filename), subtitle: `${r.biomarker_count || 'Several'} markers`, date: new Date(r.report_date || r.uploaded_at) })),
+    ...medicines.map(m => ({ type: 'Medicine', icon: Pill, title: m.drug_name, subtitle: m.dosage || 'Started', date: new Date(m.start_date) })),
+    ...manualLogs.map(l => ({ type: 'Log', icon: Activity, title: l.log_type.replace(/_/g, ' '), subtitle: `${l.value}${l.value2 ? '/' + l.value2 : ''}${l.unit ? ' ' + l.unit : ''}`, date: new Date(l.logged_at) })),
+  ].sort((a, b) => b.date - a.date)
 
   if (loading) {
-    return (
-      <div className="p-6 md:p-8 space-y-6">
-        <div className="h-8 w-48 bg-white/5 rounded animate-pulse" />
-        <SkeletonLoader rows={4} />
-      </div>
-    )
+    return <SkeletonLoader rows={4} />
   }
 
   const hasData = totalBiomarkers > 0 || reports.length > 0 || manualLogs.length > 0
 
-  return (
-    <div className="p-6 md:p-8 space-y-8">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.07] pb-6">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <span className="flex items-center gap-1.5 text-brand-400 bg-brand-500/10 border border-brand-500/25 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium tracking-wide uppercase shadow-sm">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-500"></span>
-              </span>
-              Telemetry Live
-            </span>
-            <span className="text-stone-500 text-xs">•</span>
-            <span className="text-stone-400 text-xs font-mono">
-              {totalBiomarkers} Data Points Synced
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white via-stone-100 to-stone-400 bg-clip-text text-transparent">
-            Health Intelligence Dashboard
-          </h1>
-          <p className="text-sm text-stone-400 mt-1">
-            Continuous longitudinal synthesis across clinical labs, vitals, and lifestyle telemetry.
-          </p>
-        </div>
+  if (!hasData) {
+    return (
+      <EmptyState
+        icon={Activity}
+        title="Your health story is just getting started"
+        description="Upload your first lab report or add health logs to see trends, risk scores and insights here."
+        action={() => window.location.href = '/add-records'}
+        actionLabel="Add first health record"
+      />
+    )
+  }
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={loadDashboardData}
-            className="btn-secondary text-xs px-3.5 py-2 shadow-sm flex items-center gap-2"
-          >
-            <RefreshCw size={13} className="text-stone-400" />
-            <span>Sync Records</span>
-          </button>
-        </div>
+  return (
+    <div className="space-y-4">
+      {/* 1. Summary strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Kpi
+          label="In normal range"
+          value={withRange.length ? `${inRangeNow}/${withRange.length}` : '—'}
+          sub="markers on latest report"
+          tone={outOfRange.length ? 'neutral' : 'good'}
+        />
+        <Kpi
+          label="Outside range"
+          value={outOfRange.length}
+          sub={outOfRange.length ? outOfRange.slice(0, 2).map(c => c.name).join(', ') + (outOfRange.length > 2 ? '…' : '') : 'None — all in range'}
+          tone={outOfRange.length ? 'warn' : 'good'}
+        />
+        <Kpi label="Changed since last report" value={changed.length} sub={`of ${totalBiomarkers} markers tracked`} />
+        <Kpi
+          label="Latest report"
+          value={latestReport ? safeFormatDate(latestReport.report_date || latestReport.uploaded_at, 'MMM d, yyyy') : '—'}
+          sub={`${reports.length} reports · ${allBiomarkers.length} readings`}
+          action={
+            <button onClick={loadDashboardData} className="text-stone-500 hover:text-brand-400 p-1 -m-1" title="Refresh data" aria-label="Refresh data">
+              <RefreshCw size={13} />
+            </button>
+          }
+        />
       </div>
 
-      {!hasData ? (
-        <EmptyState
-          icon={Activity}
-          title="Your health story is just getting started"
-          description="Upload your first laboratory report or add health logs to build your personal health intelligence timeline over time."
-          action={() => window.location.href = '/add-records'}
-          actionLabel="Add First Health Record"
-        />
-      ) : (
-        <div className="space-y-8">
-          {/* 1A. HEALTH STORY */}
-          <section className="card relative overflow-hidden p-6 md:p-8 bg-gradient-to-br from-[#161a29] to-[#11131f] dark:from-[#161a29] dark:to-[#11131f] border-white/[0.1]">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono font-semibold tracking-widest text-brand-500 dark:text-brand-400 uppercase bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
-                  Clinical Synthesis
-                </span>
-                <span className="text-stone-500 dark:text-stone-400 text-xs font-mono">Automated Longitudinal Narrative</span>
-              </div>
-              <h2 className="text-xl md:text-2xl font-serif font-medium text-stone-900 dark:text-stone-100 leading-snug italic tracking-tight">
-                “Your longitudinal health records show notable metabolic shifts and positive physiological adaptations.”
-              </h2>
-
-              <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
-                {observations.length > 0 ? (
-                  observations.map((obs, idx) => (
-                    <div key={idx} className="flex items-start gap-3 text-xs md:text-sm text-stone-700 dark:text-stone-300 bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.06] p-3 rounded-xl backdrop-blur-sm">
-                      <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.4)]" />
-                      <span className="leading-relaxed">{obs.text}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-stone-500 dark:text-stone-400">
-                    Upload more health records to build a clearer longitudinal trajectory.
-                  </p>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* 1B. WHAT CHANGED */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                  <span>Longitudinal Variations</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.05] text-stone-400 font-normal border border-white/[0.08]">
-                    Recent vs Prior Report
-                  </span>
-                </h2>
-                <p className="text-xs text-stone-400 mt-0.5">Statistical shift detection between consecutive clinical readings</p>
-              </div>
-            </div>
-
-            {biomarkerChanges.length === 0 ? (
-              <div className="card text-stone-400 text-sm text-center py-8">
-                No previous report available for comparison yet.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {biomarkerChanges.slice(0, 6).map((change) => (
-                  <div key={change.name} className="card card-hover flex flex-col justify-between space-y-3.5 border-white/[0.08]">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <span className="text-xs font-mono uppercase text-stone-400 tracking-wider font-semibold block truncate">
-                          {change.name}
-                        </span>
-                        <div className="flex items-baseline gap-2 mt-1.5">
-                          {change.previous ? (
-                            <>
-                              <span className="text-stone-400 text-xs font-mono">{change.previous.value}</span>
-                              <ArrowRight size={11} className="text-stone-500" />
-                              <span className="text-xl font-extrabold font-mono text-white tracking-tight">{change.latest.value}</span>
-                              <span className="text-[11px] text-stone-400 font-medium">{change.latest.unit}</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-xl font-extrabold font-mono text-white tracking-tight">{change.latest.value}</span>
-                              <span className="text-[11px] text-stone-400 font-medium">{change.latest.unit}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      <span className={`text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-full border shrink-0 ${
-                        change.status === 'increased'
-                          ? 'border-amber-500/30 text-amber-300 bg-amber-500/10'
-                          : change.status === 'decreased'
-                          ? 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10'
-                          : 'border-white/10 text-stone-400 bg-white/[0.04]'
-                      }`}>
-                        {change.deltaText}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-stone-300 leading-relaxed bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
-                      {change.explanation}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* 1C. HEALTH TIMELINE */}
-          <section className="space-y-4">
-            <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">Health Timeline</h2>
-              <p className="text-xs text-stone-400 mt-0.5">A longitudinal timeline of your personal health events</p>
-            </div>
-
-            {timelineEvents.length === 0 ? (
-              <div className="card text-stone-400 text-sm text-center py-8">
-                Your health timeline will appear here as you add records.
-              </div>
-            ) : (
-              <div className="card p-6">
-                <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-white/10">
-                  {timelineEvents.slice(0, 5).map((evt, idx) => {
-                    const IconComponent = evt.icon
-                    return (
-                      <div key={idx} className="relative flex items-start gap-4 group">
-                        {/* Bullet */}
-                        <div className="absolute -left-6 top-1.5 w-3 h-3 rounded-full bg-stone-950 border-2 border-brand-500 group-hover:scale-125 transition-transform" />
-
-                        <div className="flex-1 bg-white/[0.02] border border-white/[0.05] hover:border-white/10 rounded-xl p-3.5 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-white/[0.05] text-stone-300">
-                              <IconComponent size={16} />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border uppercase ${evt.badgeColor}`}>
-                                  {evt.type}
-                                </span>
-                                <span className="text-sm font-semibold text-white">{evt.title}</span>
-                              </div>
-                              <p className="text-xs text-stone-400 mt-0.5">{evt.subtitle}</p>
-                            </div>
-                          </div>
-
-                          <div className="text-xs font-mono text-stone-400 shrink-0">
-                            {safeFormatDate(evt.date, 'MMM d, yyyy')}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* 1D. ANOMALY ALERT BANNER */}
-          {anomalies.length > 0 && !anomalyDismissed && (
-            <ErrorBoundary name="Anomaly Alerts">
-              <section>
-                <AnomalyAlertBanner anomalies={anomalies} onDismiss={() => setAnomalyDismissed(true)} />
-              </section>
-            </ErrorBoundary>
-          )}
-
-          {/* 1E. RISK SCORE GAUGES */}
-          {riskScores && Object.keys(riskScores).length > 0 && (
-            <ErrorBoundary name="Risk Score Gauges">
-              <RiskScoreGauges riskScores={riskScores} />
-            </ErrorBoundary>
-          )}
-
-          {/* 1E2. UPCOMING DOCTOR-SCHEDULED INVESTIGATIONS */}
-          {upcomingTests && upcomingTests.length > 0 && (
-            <ErrorBoundary name="Upcoming Scheduled Tests">
-              <section className="card p-5 border-l-4 border-sky-500 bg-sky-500/[0.03] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FlaskConical size={16} className="text-sky-400" />
-                    <h3 className="text-sm font-bold text-white">Upcoming Prescribed Investigations</h3>
-                  </div>
-                  <a
-                    href="/care-plan"
-                    className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-medium"
-                  >
-                    <span>View Care Plan</span>
-                    <ArrowRight size={12} />
-                  </a>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {upcomingTests.slice(0, 3).map((t) => (
-                    <div
-                      key={t.id}
-                      className="bg-white/[0.03] border border-white/[0.08] p-3 rounded-xl space-y-1.5"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="font-semibold text-xs text-white truncate">{t.test_name}</span>
-                        <span className="text-[10px] font-mono text-sky-400 font-bold px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 shrink-0">
-                          Due {safeFormatDate(t.due_date, 'MMM d')}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-stone-400 truncate">
-                        Prescribed by {t.doctor_name || 'Physician'}
-                      </p>
-                      {t.instructions && (
-                        <p className="text-[10px] text-stone-500 line-clamp-1 italic">
-                          "{t.instructions}"
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </ErrorBoundary>
-          )}
-
-          {/* 1F. IMPORTANT HEALTH AREAS */}
-          <ErrorBoundary name="Important Health Areas">
-            <section className="space-y-4">
-              <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Important Health Areas</h2>
-                <p className="text-xs text-stone-400 mt-0.5">Compact intelligent interpretation across organ systems</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {healthAreas.map(area => (
-                  <div key={area.key} className="card card-hover flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono font-bold text-stone-300 uppercase tracking-wider">{area.title}</span>
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${area.statusClass}`}>
-                          {area.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-stone-400 leading-relaxed">
-                        "{area.description}"
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </ErrorBoundary>
-
-          {/* 1G. BIOMARKER STORY — Interactive */}
-          <ErrorBoundary name="Biomarker Story">
-            <BiomarkerStory biomarkerNames={biomarkerNames} allBiomarkers={allBiomarkers} />
-          </ErrorBoundary>
-        </div>
+      {/* 2. Unusual readings (compact) */}
+      {anomalies.length > 0 && !anomalyDismissed && (
+        <ErrorBoundary name="Anomaly Alerts">
+          <AnomalyAlertBanner anomalies={anomalies} onDismiss={() => setAnomalyDismissed(true)} />
+        </ErrorBoundary>
       )}
+
+      {/* 3. Risk scores */}
+      {riskScores && Object.keys(riskScores).length > 0 && (
+        <ErrorBoundary name="Risk Score Gauges">
+          <RiskScoreGauges riskScores={riskScores} />
+        </ErrorBoundary>
+      )}
+
+      {/* 4. Changes + recent activity side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
+        <ErrorBoundary name="Changes">
+          <ChangesPanel movers={movers} className="lg:col-span-3" />
+        </ErrorBoundary>
+        <ErrorBoundary name="Recent activity">
+          <ActivityPanel events={timelineEvents} upcomingTests={upcomingTests} className="lg:col-span-2" />
+        </ErrorBoundary>
+      </div>
+
+      {/* 5. Biomarker explorer */}
+      <ErrorBoundary name="Biomarker Story">
+        <BiomarkerStory biomarkerNames={biomarkerNames} allBiomarkers={allBiomarkers} />
+      </ErrorBoundary>
     </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   COMPACT BUILDING BLOCKS (summary strip, changes list, recent activity)
+   ───────────────────────────────────────────────────────────────────────── */
+// "08_2026-07-10_Annual_Comprehensive_Health_Screen_—_Fin.pdf" -> "Annual Comprehensive Health Screen — Fin"
+function prettyReportName(name = '') {
+  const t = name
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/^\d+[_\s-]+/, '')
+    .replace(/\d{4}-\d{2}-\d{2}[_\s-]*/, '')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return t || name
+}
+
+function Kpi({ label, value, sub, tone = 'neutral', action }) {
+  const valueColor = tone === 'warn' ? 'text-amber-400' : tone === 'good' ? 'text-emerald-400' : 'text-white'
+  return (
+    <div className="card p-3.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] text-stone-400">{label}</span>
+        {action}
+      </div>
+      <div className={`text-xl md:text-2xl font-bold font-mono tracking-tight mt-1 ${valueColor}`}>{value}</div>
+      <div className="text-[11px] text-stone-500 truncate" title={typeof sub === 'string' ? sub : undefined}>{sub}</div>
+    </div>
+  )
+}
+
+function ChangesPanel({ movers, className = '' }) {
+  const [all, setAll] = useState(false)
+  const shown = all ? movers : movers.slice(0, 6)
+  return (
+    <section className={`card p-4 ${className}`}>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <h3 className="text-[13px] font-semibold text-white">Changes since your last report</h3>
+        <span className="text-[11px] text-stone-500">{movers.length} changed</span>
+      </div>
+      {movers.length === 0 ? (
+        <p className="text-xs text-stone-500 py-2">Upload a second report to see what changed.</p>
+      ) : (
+        <>
+          <ul className="divide-y divide-white/[0.06]">
+            {shown.map(c => (
+              <li key={c.name} className="py-2 flex items-center gap-3">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${c.out ? 'bg-amber-500' : 'bg-emerald-500'}`} title={c.out ? 'Outside reference range' : 'Within reference range'} />
+                <span className="text-[13px] text-stone-100 flex-1 min-w-0 truncate">{c.name}</span>
+                <span className="text-xs font-mono text-stone-400 shrink-0">
+                  {c.previous.value} <ArrowRight size={10} className="inline text-stone-600" /> <b className="text-white">{c.latest.value}</b>
+                  <span className="text-stone-500 hidden sm:inline"> {c.latest.unit}</span>
+                </span>
+                <span className={`text-[10px] font-mono font-semibold w-14 text-right shrink-0 ${c.pct > 0 ? 'text-sky-400' : 'text-violet-400'}`}>
+                  {c.pct > 0 ? '▲' : '▼'} {Math.abs(c.pct).toFixed(0)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-[10px] text-stone-500 flex items-center gap-3">
+              <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> outside range</span>
+              <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> in range</span>
+            </span>
+            {movers.length > 6 && (
+              <button onClick={() => setAll(a => !a)} className="text-[11px] text-brand-400 hover:text-brand-300">
+                {all ? 'Show less' : `Show all ${movers.length}`}
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </section>
+  )
+}
+
+function ActivityPanel({ events, upcomingTests, className = '' }) {
+  const [all, setAll] = useState(false)
+  const shown = all ? events : events.slice(0, 4)
+  return (
+    <section className={`card p-4 ${className}`}>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <h3 className="text-[13px] font-semibold text-white">Recent activity</h3>
+        <a href="/care-plan" className="text-[11px] text-stone-500 hover:text-brand-400">Care plan →</a>
+      </div>
+      {upcomingTests?.length > 0 && (
+        <ul className="mb-2 space-y-1.5">
+          {upcomingTests.slice(0, 2).map(t => (
+            <li key={t.id} className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 bg-sky-500/10 border border-sky-500/20">
+              <FlaskConical size={13} className="text-sky-400 shrink-0" />
+              <span className="text-xs text-stone-100 flex-1 min-w-0 truncate">{t.test_name}</span>
+              <span className="text-[10px] font-mono text-sky-400 shrink-0">Due {safeFormatDate(t.due_date, 'MMM d')}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {events.length === 0 ? (
+        <p className="text-xs text-stone-500 py-2">Your activity will appear here as you add records.</p>
+      ) : (
+        <ul className="divide-y divide-white/[0.06]">
+          {shown.map((e, i) => {
+            const Icon = e.icon
+            return (
+              <li key={i} className="py-2 flex items-center gap-2.5">
+                <Icon size={14} className="text-stone-400 shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs text-stone-100 truncate capitalize">{e.title}</span>
+                  <span className="block text-[10px] text-stone-500">{e.type} · {e.subtitle}</span>
+                </span>
+                <span className="text-[10px] font-mono text-stone-500 shrink-0">{safeFormatDate(e.date, 'MMM d, yy')}</span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {events.length > 4 && (
+        <button onClick={() => setAll(a => !a)} className="text-[11px] text-brand-400 hover:text-brand-300 pt-2">
+          {all ? 'Show less' : `Show all ${events.length}`}
+        </button>
+      )}
+    </section>
   )
 }
 
@@ -577,87 +444,26 @@ export default function Dashboard() {
    ANOMALY ALERT BANNER
    ───────────────────────────────────────────────────────────────────────── */
 function AnomalyAlertBanner({ anomalies, onDismiss }) {
-  const top = anomalies.slice(0, 4)
-  const hasHigh = top.some(a => a.severity === 'high')
-
+  const hasHigh = anomalies.some(a => a.severity === 'high')
   return (
-    <div
-      className={`relative rounded-2xl border p-5 overflow-hidden ${
-        hasHigh 
-          ? 'bg-rose-500/[0.06] border-rose-500/30' 
-          : 'bg-amber-500/[0.06] border-amber-500/30'
-      }`}
-    >
-      {/* dismiss */}
-      <button
-        onClick={onDismiss}
-        className="absolute top-3 right-3 text-stone-400 hover:text-white transition-colors"
-      >
-        <X size={16} />
-      </button>
-
-      <div className="flex items-start gap-3 mb-4">
-        <div
-          className={`p-2.5 rounded-xl shrink-0 ${
-            hasHigh
-              ? 'bg-rose-500/15 text-rose-500 dark:text-rose-400'
-              : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-          }`}
-        >
-          <ShieldAlert size={20} />
-        </div>
-        <div>
-          <h3 className="text-sm font-bold text-white">
-            {anomalies.length} Unusual Reading{anomalies.length > 1 ? 's' : ''} Detected
-          </h3>
-          <p className="text-xs text-stone-400 mt-0.5">
-            Statistical anomalies found in your biomarker history — values that deviate significantly from your personal baseline.
-          </p>
-        </div>
+    <div className={`rounded-2xl border px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2.5 ${
+      hasHigh ? 'bg-rose-500/[0.06] border-rose-500/30' : 'bg-amber-500/[0.06] border-amber-500/30'}`}>
+      <div className="flex items-center gap-2 shrink-0">
+        <ShieldAlert size={16} className={hasHigh ? 'text-rose-400' : 'text-amber-400'} />
+        <span className="text-[13px] font-semibold text-white">
+          {anomalies.length} unusual reading{anomalies.length > 1 ? 's' : ''}
+        </span>
+        <span className="text-[11px] text-stone-400 hidden md:inline">— far from your own usual level</span>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {top.map((a, i) => {
-          const isHigh = a.severity === 'high'
-          const badgeClass = isHigh
-            ? 'text-rose-600 dark:text-rose-400 border-rose-500/30 bg-rose-500/10'
-            : 'text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10'
-          const itemBgClass = isHigh
-            ? 'bg-rose-500/[0.08] border-rose-500/25'
-            : 'bg-amber-500/[0.08] border-amber-500/25'
-
-          return (
-            <div
-              key={i}
-              className={`flex items-center gap-3 rounded-xl p-3 border ${itemBgClass}`}
-            >
-              <div className="text-center min-w-[52px]">
-                <div className={`text-xl font-bold font-mono ${isHigh ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                  {a.value}
-                </div>
-                <div className="text-[9px] text-stone-500 mt-0.5">z={a.z_score?.toFixed(1)}</div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-semibold text-white truncate">{a.name}</div>
-                <div className="text-[10px] text-stone-400">
-                  {safeFormatDate(a.recorded_at, 'MMM d, yyyy')}
-                </div>
-              </div>
-              <span
-                className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border shrink-0 ${badgeClass}`}
-              >
-                {isHigh ? 'High' : 'Medium'}
-              </span>
-            </div>
-          )
-        })}
+      <div className="flex flex-wrap gap-1.5 flex-1">
+        {anomalies.slice(0, 4).map((a, i) => (
+          <span key={i} className="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-stone-300">
+            {a.name} <b className="font-mono text-white">{a.value}</b> · {safeFormatDate(a.recorded_at, 'MMM d, yy')}
+          </span>
+        ))}
+        {anomalies.length > 4 && <span className="text-[11px] text-stone-500">+{anomalies.length - 4} more</span>}
       </div>
-
-      {anomalies.length > 4 && (
-        <p className="text-xs text-stone-500 mt-3 text-center">
-          + {anomalies.length - 4} more anomalies — review your biomarker history below.
-        </p>
-      )}
+      <button onClick={onDismiss} className="text-stone-500 hover:text-white self-end sm:self-auto" aria-label="Dismiss"><X size={15} /></button>
     </div>
   )
 }
@@ -694,12 +500,12 @@ function RiskGauge({ domain, label, score, factors }) {
 
   return (
     <div
-      className="card card-hover flex flex-col items-center cursor-pointer select-none relative"
-      style={{ padding: '16px 12px' }}
+      className="rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-white/[0.15] transition-colors flex flex-col items-center cursor-pointer select-none relative"
+      style={{ padding: '10px 6px 8px' }}
       onClick={() => setExpanded(e => !e)}
     >
-      <div className="relative w-full flex flex-col items-center justify-center" style={{ height: 90 }}>
-        <svg viewBox="0 0 100 58" className="w-28 h-16 overflow-visible">
+      <div className="relative w-full flex flex-col items-center justify-center" style={{ height: 70 }}>
+        <svg viewBox="0 0 100 58" className="w-full max-w-[6.5rem] h-14 overflow-visible">
           {/* Background track */}
           <path
             d="M 12 50 A 38 38 0 0 1 88 50"
@@ -790,36 +596,20 @@ function RiskScoreGauges({ riskScores }) {
   const overallColor = getRiskColor(overall)
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+    <section className="card p-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-brand-400 text-[11px] font-mono font-semibold tracking-widest uppercase mb-1">
-            <ShieldCheck size={13} /> AI Risk Intelligence
-          </div>
-          <h2 className="text-lg font-bold text-white tracking-tight">Health Risk Assessment</h2>
-          <p className="text-xs text-stone-400 mt-0.5">
-            AI-computed risk scores across 7 health domains based on your biomarker history · click any gauge for details
-          </p>
+          <h3 className="text-[13px] font-semibold text-white flex items-center gap-2"><ShieldCheck size={14} className="text-brand-400" /> Risk scores</h3>
+          <p className="text-[11px] text-stone-500">Rule-based points (0–100) from your latest labs · tap a gauge to see why</p>
         </div>
-        {/* Overall pill */}
-        <div
-          className="flex items-center gap-3 rounded-2xl border px-4 py-2.5 self-start sm:self-auto shrink-0"
-          style={{ background: `${overallColor}10`, borderColor: `${overallColor}30` }}
-        >
-          <div>
-            <div className="text-[10px] text-stone-500 font-mono uppercase tracking-wider">Overall Risk</div>
-            <div className="text-2xl font-bold font-mono" style={{ color: overallColor }}>{overall}</div>
-          </div>
-          <div
-            className="text-[11px] font-bold uppercase px-2.5 py-1 rounded-full border"
-            style={{ color: overallColor, borderColor: `${overallColor}40`, background: `${overallColor}15` }}
-          >
-            {overall >= 67 ? 'High' : overall >= 34 ? 'Moderate' : 'Low'}
-          </div>
+        <div className="flex items-center gap-2 rounded-xl border px-3 py-1.5 shrink-0" style={{ background: `${overallColor}10`, borderColor: `${overallColor}30` }}>
+          <span className="text-[10px] text-stone-500 uppercase tracking-wider">Overall</span>
+          <span className="text-lg font-bold font-mono" style={{ color: overallColor }}>{overall}</span>
+          <span className="text-[10px] font-bold uppercase" style={{ color: overallColor }}>{overall >= 67 ? 'High' : overall >= 34 ? 'Moderate' : 'Low'}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2">
         {domains.map(([domain, data]) => (
           <RiskGauge
             key={domain}
@@ -831,10 +621,9 @@ function RiskScoreGauges({ riskScores }) {
         ))}
       </div>
 
-      {/* Disclaimer */}
-      <p className="text-[10px] text-stone-600 text-center pt-1">
+      <p className="text-[10px] text-stone-500">
         <Info size={10} className="inline mr-1" />
-        Risk scores are informational estimates based on available biomarker data. Not a medical diagnosis.
+        Informational estimates, not a diagnosis.
       </p>
     </section>
   )
@@ -1079,16 +868,15 @@ function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
   })
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 pt-2">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-brand-400 text-[11px] font-mono font-semibold tracking-widest uppercase mb-1">
-            <BarChart2 size={13} /> Biomarker Intelligence
-          </div>
-          <h2 className="text-lg font-bold text-white tracking-tight">Your biomarkers tell a story</h2>
-          <p className="text-xs text-stone-400 mt-0.5">
-            {biomarkerNames.length} biomarkers tracked · select any to explore its journey
+          <h3 className="text-[13px] font-semibold text-white flex items-center gap-2">
+            <BarChart2 size={14} className="text-brand-400" /> Explore a biomarker
+          </h3>
+          <p className="text-[11px] text-stone-500">
+            {biomarkerNames.length} tracked · pick one to see its history and trend
           </p>
         </div>
         {/* Controls */}
@@ -1205,7 +993,7 @@ function BiomarkerStory({ biomarkerNames, allBiomarkers }) {
                   <>
                     <span className="flex items-center gap-1.5 text-[10px] font-mono text-stone-400">
                       <span className="inline-block w-6 border-t-2 border-dashed border-indigo-400/70" />
-                      AI 90-day forecast
+                      Linear trend · next 3 readings
                     </span>
                     {forecast.slope != null && (
                       <span className={`flex items-center gap-1 text-[10px] font-semibold ${forecast.slope > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>

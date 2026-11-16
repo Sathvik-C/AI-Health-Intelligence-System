@@ -1,0 +1,127 @@
+{
+ "_comment": "SYNTHETIC TEST FIXTURE shaped like CPIC API rows (guideline, drug, recommendation). Wording paraphrased for tests.",
+ "guidelines": [
+  {
+   "id": 100,
+   "name": "CPIC Guideline for Clopidogrel and CYP2C19",
+   "url": "https://cpicpgx.org/guidelines/guideline-for-clopidogrel-and-cyp2c19/",
+   "genes": [
+    "CYP2C19"
+   ]
+  },
+  {
+   "id": 101,
+   "name": "CPIC Guideline for PEG-interferon and IFNL3",
+   "url": "https://cpicpgx.org/guidelines/",
+   "genes": [
+    "IFNL3"
+   ]
+  }
+ ],
+ "drugs": [
+  {
+   "drugid": "RxNorm:32968",
+   "name": "clopidogrel"
+  },
+  {
+   "drugid": "RxNorm:000",
+   "name": "peginterferon alfa-2a"
+  }
+ ],
+ "recommendations": [
+  {
+   "id": 1,
+   "guidelineid": 100,
+   "drugid": "RxNorm:32968",
+   "phenotypes": {
+    "CYP2C19": "Poor Metabolizer"
+   },
+   "implications": {
+    "CYP2C19": "Significantly reduced clopidogrel active metabolite formation; increased risk of cardiovascular events."
+   },
+   "drugrecommendation": "Avoid standard-dose clopidogrel if possible. Use prasugrel or ticagrelor at standard dose if no contraindication.",
+   "classification": "Strong",
+   "activityscore": {
+    "CYP2C19": "n/a"
+   },
+   "allelestatus": null,
+   "population": "CV indications",
+   "comments": "n/a",
+   "version": 3
+  },
+  {
+   "id": 2,
+   "guidelineid": 100,
+   "drugid": "RxNorm:32968",
+   "phenotypes": {
+    "CYP2C19": "Poor Metabolizer"
+   },
+   "implications": {
+    "CYP2C19": "Significantly reduced clopidogrel active metabolite formation; increased risk of cardiovascular events."
+   },
+   "drugrecommendation": "Avoid standard-dose clopidogrel if possible. Use prasugrel or ticagrelor at standard dose if no contraindication.",
+   "classification": "Strong",
+   "activityscore": {
+    "CYP2C19": "n/a"
+   },
+   "allelestatus": null,
+   "population": "CV indications",
+   "comments": "n/a",
+   "version": 3
+  },
+  {
+   "id": 3,
+   "guidelineid": 100,
+   "drugid": "RxNorm:32968",
+   "phenotypes": {
+    "CYP2C19": "Normal Metabolizer"
+   },
+   "implications": {
+    "CYP2C19": "Normal clopidogrel active metabolite formation."
+   },
+   "drugrecommendation": "If considering clopidogrel, use at standard dose.",
+   "classification": "Strong",
+   "activityscore": {},
+   "allelestatus": null,
+   "population": "CV indications",
+   "comments": null,
+   "version": 3
+  },
+  {
+   "id": 4,
+   "guidelineid": 100,
+   "drugid": "RxNorm:32968",
+   "phenotypes": {
+    "CYP2C19": "Indeterminate"
+   },
+   "implications": {
+    "CYP2C19": "n/a"
+   },
+   "drugrecommendation": "No recommendation",
+   "classification": "No Recommendation",
+   "activityscore": {},
+   "allelestatus": null,
+   "population": "CV indications",
+   "comments": null,
+   "version": 3
+  },
+  {
+   "id": 5,
+   "guidelineid": 101,
+   "drugid": "RxNorm:000",
+   "phenotypes": {
+    "IFNL3": "favorable response genotype"
+   },
+   "implications": {
+    "IFNL3": "Higher response rate."
+   },
+   "drugrecommendation": "Synthetic interferon recommendation.",
+   "classification": "Strong",
+   "activityscore": {},
+   "allelestatus": null,
+   "population": "general",
+   "comments": null,
+   "version": 1
+  }
+ ]
+}

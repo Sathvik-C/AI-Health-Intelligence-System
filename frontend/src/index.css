@@ -771,3 +771,27 @@ html:not(.dark) .bg-\[\#1a1d2e\] {
   color: #0f172a !important;
 }
 
+
+/* ==========================================================================
+   AI INSIGHTS TAB — light-mode support for new surfaces
+   ========================================================================== */
+html:not(.dark) .ai-sticky-nav {
+  background-color: rgba(248, 250, 252, 0.92) !important;
+}
+html:not(.dark) .bg-\[\#0b0d14\]\/90 {
+  background-color: rgba(248, 250, 252, 0.92) !important;
+}
+
+/* ==========================================================================
+   ASK YOUR HEALTH RECORD — citation chips (light mode contrast)
+   ========================================================================== */
+html:not(.dark) button.rag-ref-chip {
+  color: #c2410c !important;
+  background-color: #fff7ed !important;
+  border-color: #fdba74 !important;
+}
+html:not(.dark) button.rag-ref-chip.is-active {
+  color: #ffffff !important;
+  background-color: #ea580c !important;
+  border-color: #ea580c !important;
+}

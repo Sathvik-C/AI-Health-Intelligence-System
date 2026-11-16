@@ -1,0 +1,74 @@
+{
+ "_comment": "SYNTHETIC TEST FIXTURE shaped like an openFDA /drug/label.json response. Not real label text.",
+ "results": [
+  {
+   "set_id": "combo-set",
+   "effective_time": "20250101",
+   "openfda": {
+    "generic_name": [
+     "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE"
+    ],
+    "brand_name": [
+     "COMBOTEST"
+    ],
+    "product_type": [
+     "HUMAN PRESCRIPTION DRUG"
+    ]
+   },
+   "contraindications": [
+    "Synthetic combination product contraindications text that is long enough to keep."
+   ]
+  },
+  {
+   "set_id": "otc-set",
+   "effective_time": "20250301",
+   "openfda": {
+    "generic_name": [
+     "METFORMIN"
+    ],
+    "brand_name": [
+     "OTCTEST"
+    ],
+    "product_type": [
+     "HUMAN OTC DRUG"
+    ]
+   },
+   "warnings": [
+    "Synthetic OTC warnings text that is long enough to keep for this test."
+   ]
+  },
+  {
+   "set_id": "test-set-1",
+   "effective_time": "20240115",
+   "openfda": {
+    "generic_name": [
+     "METFORMIN HYDROCHLORIDE"
+    ],
+    "brand_name": [
+     "TESTFORMIN"
+    ],
+    "product_type": [
+     "HUMAN PRESCRIPTION DRUG"
+    ]
+   },
+   "boxed_warning": [
+    "WARNING: LACTIC ACIDOSIS. Synthetic boxed warning: postmarketing cases of lactic acidosis have been reported; risk increases with renal impairment."
+   ],
+   "contraindications": [
+    "4 CONTRAINDICATIONS Synthetic text: contraindicated in patients with severe renal impairment (eGFR below 30 mL/min/1.73 m2) and in acute or chronic metabolic acidosis."
+   ],
+   "warnings_and_cautions": [
+    "5 WARNINGS AND PRECAUTIONS 5.1 Lactic Acidosis Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. Synthetic sentence about lactic acidosis risk factors including renal impairment. 5.2 Vitamin B12 Deficiency Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. Synthetic sentence noting that long-term use may lower vitamin B12 levels and measurement is advised periodically. 5.3 Hypoglycemia with Insulin Secretagogues Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. Synthetic sentence about low blood sugar when combined with sulfonylureas such as glimepiride. "
+   ],
+   "warnings": [
+    "Old-format warnings that must be skipped because the PLR section exists."
+   ],
+   "drug_interactions": [
+    "7 DRUG INTERACTIONS Synthetic text: carbonic anhydrase inhibitors such as topiramate may increase the risk of lactic acidosis; cimetidine may increase metformin exposure."
+   ],
+   "indications_and_usage": [
+    "short"
+   ]
+  }
+ ]
+}

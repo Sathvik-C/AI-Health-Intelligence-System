@@ -1,76 +1,35 @@
+"""Ask Your Health Record.
+
+Answers come from the RAG pipeline (app/rag): public references (FDA labels, CPIC, MedlinePlus) plus the
+facts the app computed from this user's records. Every sentence carries citations and passes the citation
+validator; if nothing survives, the user gets "no sourced answer" instead of a guess.
+The response keeps the old `answer` string so existing widgets work unchanged.
+"""
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+
 from app.database import get_db
-from app.models.models import User, Biomarker, Report, ManualLog
+from app.models.models import User
+from app.rag.answer import answer_question
 from app.utils.auth import get_current_user
-from app.ai.rag_service import get_rag_answer
 
 router = APIRouter()
+log = logging.getLogger("chat")
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(..., min_length=1, max_length=1000)
     doctor_mode: bool = False
 
 
+# Plain `def` so FastAPI runs the blocking Gemini calls in a worker thread.
 @router.post("/")
-async def chat(
-    req: ChatRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    # Gather biomarker context
-    biomarkers = (
-        db.query(Biomarker)
-        .filter(Biomarker.user_id == current_user.id)
-        .order_by(Biomarker.recorded_at.desc())
-        .limit(100)
-        .all()
-    )
-
-    # Gather report texts
-    reports = db.query(Report).filter(Report.user_id == current_user.id).order_by(Report.uploaded_at.desc()).limit(5).all()
-    report_texts = [r.extracted_text for r in reports if r.extracted_text]
-
-    biomarker_context = [
-        {
-            "name": b.name,
-            "value": b.value,
-            "unit": b.unit,
-            "ref_min": b.ref_min,
-            "ref_max": b.ref_max,
-            "recorded_at": b.recorded_at.isoformat() if b.recorded_at else None,
-        }
-        for b in biomarkers
-    ]
-
-    manual_logs = (
-        db.query(ManualLog)
-        .filter(ManualLog.user_id == current_user.id)
-        .order_by(ManualLog.logged_at.desc())
-        .limit(50)
-        .all()
-    )
-
-    for m in manual_logs:
-        biomarker_context.append({
-            "name": m.log_type,
-            "value": f"{m.value}/{m.value2}" if m.value2 else m.value,
-            "unit": m.unit,
-            "recorded_at": m.logged_at.isoformat() if m.logged_at else None,
-            "source": "Manual Log"
-        })
-
+def chat(req: ChatRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
-        answer = await get_rag_answer(
-            question=req.message,
-            biomarker_context=biomarker_context,
-            report_texts=report_texts,
-            doctor_mode=req.doctor_mode,
-        )
-        return {"answer": answer}
+        return answer_question(db, current_user, req.message, doctor_mode=req.doctor_mode)
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        log.exception("chat failed")
+        raise HTTPException(status_code=500, detail=f"Chat failed: {type(e).__name__}")

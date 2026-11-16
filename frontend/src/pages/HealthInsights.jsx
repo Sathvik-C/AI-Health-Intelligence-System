@@ -163,14 +163,14 @@ export default function HealthInsights() {
             </div>
 
 
-            {/* 2. WHAT IS STABLE */}
+            {/* 2. WHAT IMPROVED */}
             <div className="card p-5 space-y-4 border-white/[0.08]">
               <div className="flex items-center gap-2.5 border-b border-white/[0.07] pb-3">
                 <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
                   <CheckCircle2 size={16} />
                 </div>
                 <h2 className="text-sm font-bold text-white uppercase font-mono tracking-wider">
-                  WHAT IS STABLE
+                  WHAT IMPROVED
                 </h2>
               </div>
 
@@ -184,7 +184,7 @@ export default function HealthInsights() {
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs text-stone-500">Biomarker baseline is stable across recorded data.</p>
+                <p className="text-xs text-stone-500">No test has improved yet — or there is only one report so far.</p>
               )}
             </div>
 

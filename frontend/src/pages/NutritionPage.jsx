@@ -70,7 +70,7 @@ export default function NutritionPage() {
           {loading ? (
             <><Loader size={14} className="animate-spin" /> Generating Plan...</>
           ) : (
-            <><Sparkles size={14} /> Generate AI Nutrition Plan</>
+            <><Sparkles size={14} /> Generate Nutrition Plan</>
           )}
         </button>
       </div>
@@ -86,7 +86,7 @@ export default function NutritionPage() {
         <EmptyState
           icon={Utensils}
           title="No active nutrition plan generated"
-          description="Generate a 7-day personalized dietary template tailored to support your specific biomarker profile."
+          description="Build a daily meal plan from your latest lab results — every change is linked to a specific result."
           action={generatePlan}
           actionLabel="Generate Nutrition Plan"
         />
@@ -102,6 +102,15 @@ export default function NutritionPage() {
             <p className="text-sm text-stone-200 leading-relaxed font-medium">
               {plan.summary_reasoning}
             </p>
+            {plan.adjustments?.length > 0 && (
+              <ul className="pt-2 space-y-1.5">
+                {plan.adjustments.map((a, i) => (
+                  <li key={i} className="text-xs text-stone-300 leading-relaxed">
+                    <span className="font-semibold text-stone-100">Because {a.because}:</span> {a.change}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {currentDayData && (
